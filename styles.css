@@ -55,6 +55,17 @@ body{
   max-width: 26ch;
 }
 
+.amp{
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+
+  /* optical alignment polish */
+  position: relative;
+  top: 0.02em;
+}
+
+
 .bottom{
   display: flex;
   justify-content: center;
