@@ -54,6 +54,10 @@ body{
   /* THIS is the key change */
   max-width: 26ch;
 }
+.line{
+  display: inline-block;
+  white-space: nowrap;
+}
 
 .amp{
   font-family: "Bricolage Grotesque", system-ui, sans-serif;
