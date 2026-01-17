@@ -80,7 +80,7 @@ body.cursor-active .name{
   display:grid;
   align-content:center;
   justify-items:center;
-  gap: 34px; /* space between headline and ticker */
+  gap: 68px; /* space between headline and ticker */
   padding: 4vh 0;
 }
 
