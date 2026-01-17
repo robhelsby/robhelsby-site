@@ -82,7 +82,7 @@ body{
 /* ✅ Mobile-only type calibration (your requested “drop by ~1pt”) */
 @media (max-width: 480px){
   .headline{
-    font-size: 33px; /* 34px -> 33px */
+    font-size: 30px;
     max-width: 92vw;
   }
 }
