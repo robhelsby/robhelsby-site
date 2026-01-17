@@ -1,6 +1,4 @@
 (() => {
-  const neon = "#76FA4C";
-
   // -----------------------------
   // Copy email to clipboard
   // -----------------------------
@@ -8,13 +6,11 @@
   const status = document.getElementById("copy-status");
 
   async function copyText(text) {
-    // Prefer Clipboard API
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
       return;
     }
 
-    // Fallback for older browsers
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
@@ -32,8 +28,6 @@
       try {
         await copyText(text);
         if (status) status.textContent = "Email copied";
-        copyBtn.classList.add("copied");
-        setTimeout(() => copyBtn.classList.remove("copied"), 600);
       } catch {
         if (status) status.textContent = "Copy failed";
       }
@@ -41,16 +35,15 @@
   }
 
   // -----------------------------
-  // Cursor takeover (GIF follows pointer)
-  // Desktop: hover
-  // Touch: press + hold
+  // Cursor takeover GIF
+  // Desktop: hover over name
+  // Touch: press + hold on name
   // -----------------------------
   const trigger = document.getElementById("name-trigger");
   const cursorEl = document.getElementById("cursor-gif");
   if (!trigger || !cursorEl) return;
 
   const body = document.body;
-
   const isTouch =
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
@@ -77,7 +70,7 @@
     cursorEl.style.top = `${y}px`;
   };
 
-  // Desktop hover behaviour
+  // Desktop hover
   if (!isTouch) {
     trigger.addEventListener("mouseenter", (e) => {
       show();
@@ -89,10 +82,10 @@
       moveTo(e.clientX, e.clientY);
     });
 
-    trigger.addEventListener("mouseleave", () => hide());
+    trigger.addEventListener("mouseleave", hide);
   }
 
-  // Touch + hold behaviour
+  // Touch + hold
   if (isTouch) {
     const HOLD_MS = 350;
 
@@ -114,13 +107,13 @@
       moveTo(t.clientX, t.clientY);
     }, { passive: true });
 
-    const cancelHold = () => {
+    const end = () => {
       if (holdTimer) clearTimeout(holdTimer);
       holdTimer = null;
       hide();
     };
 
-    trigger.addEventListener("touchend", cancelHold);
-    trigger.addEventListener("touchcancel", cancelHold);
+    trigger.addEventListener("touchend", end);
+    trigger.addEventListener("touchcancel", end);
   }
 })();
