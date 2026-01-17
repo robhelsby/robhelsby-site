@@ -1,7 +1,5 @@
 (() => {
-  // -----------------------------
   // Copy email to clipboard
-  // -----------------------------
   const copyBtn = document.getElementById("copy-email");
   const status = document.getElementById("copy-status");
 
@@ -10,7 +8,6 @@
       await navigator.clipboard.writeText(text);
       return;
     }
-
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
@@ -34,11 +31,7 @@
     });
   }
 
-  // -----------------------------
   // Cursor takeover GIF
-  // Desktop: hover over name
-  // Touch: press + hold on name
-  // -----------------------------
   const trigger = document.getElementById("name-trigger");
   const cursorEl = document.getElementById("cursor-gif");
   if (!trigger || !cursorEl) return;
@@ -76,12 +69,10 @@
       show();
       moveTo(e.clientX, e.clientY);
     });
-
     trigger.addEventListener("mousemove", (e) => {
       if (!active) return;
       moveTo(e.clientX, e.clientY);
     });
-
     trigger.addEventListener("mouseleave", hide);
   }
 
@@ -91,7 +82,6 @@
 
     trigger.addEventListener("touchstart", (e) => {
       if (holdTimer) clearTimeout(holdTimer);
-
       holdTimer = setTimeout(() => {
         const t = e.touches && e.touches[0];
         if (!t) return;
