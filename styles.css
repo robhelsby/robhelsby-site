@@ -1,8 +1,8 @@
 /* ---- Polysans (self-hosted) ---- */
-/* Put the font file here in your repo:
+/* Put the font file here:
    /fonts/PolySans-SlimWide.woff
 */
-@font-face {
+@font-face{
   font-family: "PolySans";
   src: url("/fonts/PolySans-SlimWide.woff") format("woff");
   font-weight: 400;
@@ -10,34 +10,42 @@
   font-display: swap;
 }
 
-/* ---- Base ---- */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
 
 :root{
-  --bg: #050505;
-  --fg: #f2f2f2;
+  --bg:#050505;
+  --fg:#f2f2f2;
   --muted: rgba(242,242,242,0.65);
-  --neon: #39ff14;
+  --muted2: rgba(242,242,242,0.55);
+  --neon: #76FA4C;
 }
 
 body{
-  margin: 0;
+  margin:0;
   background: var(--bg);
   color: var(--fg);
-
-  /* Global default: Polysans everywhere */
   font-family: "PolySans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
 
-/* ---- Layout ---- */
+/* subtle vignette polish */
+.frame::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(60% 55% at 50% 45%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%),
+    radial-gradient(90% 80% at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%);
+  opacity:.9;
+}
+
 .frame{
   min-height: 100svh;
-  display: grid;
+  display:grid;
   grid-template-rows: auto 1fr auto;
-
   padding:
     max(36px, env(safe-area-inset-top))
     max(24px, env(safe-area-inset-right))
@@ -45,94 +53,221 @@ body{
     max(24px, env(safe-area-inset-left));
 }
 
-/* subtle vignette polish (kept very light) */
-.frame::before{
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(60% 55% at 50% 45%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%),
-    radial-gradient(90% 80% at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%);
-  opacity: 0.9;
-}
-
-/* ---- Top ---- */
+/* TOP */
 .top{
-  display: flex;
-  justify-content: center;
+  display:flex;
+  justify-content:center;
 }
 
 .name{
-  position: relative;
-  z-index: 1;
+  position:relative;
+  z-index:1;
   color: var(--neon);
   font-weight: 400;
   letter-spacing: 0.10em;
   text-transform: uppercase;
   font-size: clamp(16px, 1.8vw, 22px);
+  user-select: none;
 }
 
-/* ---- Middle ---- */
+/* On desktop we’ll hide the system cursor only while takeover is active */
+body.cursor-active .name{
+  cursor: none;
+}
+
+/* MIDDLE */
 .middle{
-  display: grid;
-  place-items: center;
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  gap: 34px; /* space between headline and ticker */
   padding: 4vh 0;
 }
 
 .headline{
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  text-align: center;
-
+  position:relative;
+  z-index:1;
+  margin:0;
+  text-align:center;
   font-size: clamp(34px, 5.0vw, 68px);
-  line-height: 1.1;
+  line-height: 1.08;
   font-weight: 400;
   letter-spacing: -0.015em;
+  max-width: 22ch;
 }
 
-/* Force EXACT line breaks (no reflow stealing words) */
-.line{
-  display: inline-block;
-  white-space: nowrap;
+/* Each line stays on its own line on desktop, but can wrap on narrow screens */
+.headline-line{
+  display:block;
+  white-space: normal;
 }
 
-/* Ampersand only */
 .amp{
   font-family: "Bricolage Grotesque", system-ui, sans-serif;
   font-weight: 400;
   letter-spacing: -0.01em;
-
-  /* tiny optical alignment */
   position: relative;
   top: 0.02em;
 }
 
-/* ---- Bottom ---- */
-.bottom{
-  display: flex;
-  justify-content: center;
+/* TICKER */
+.ticker{
+  position:relative;
+  z-index:1;
+  width: min(980px, 92vw);
+  color: var(--muted);
+  font-size: clamp(16px, 1.7vw, 26px);
+  line-height: 1.2;
 }
 
-.email{
-  position: relative;
-  z-index: 1;
-  color: var(--muted);
+.ticker__mask{
+  position:relative;
+  overflow:hidden;
+  padding: 6px 0;
+
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+}
+
+.ticker__track{
+  display:inline-flex;
+  align-items:center;
+  gap: 18px;
+  white-space:nowrap;
+  will-change: transform;
+}
+
+.ticker__sep{
+  opacity: .45;
+}
+
+/* Right -> Left gentle drift */
+@media (prefers-reduced-motion: no-preference){
+  .ticker__track{
+    animation: drift 40s linear infinite;
+  }
+
+  @keyframes drift{
+    from{ transform: translateX(0%); }
+    to{ transform: translateX(-25%); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ticker__track{ animation:none; }
+}
+
+/* BOTTOM */
+.bottom{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 18px;
+  padding-top: 18px;
+}
+
+.contact{
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.contact__link{
+  color: var(--muted2);
   text-decoration: none;
-  font-size: clamp(16px, 1.6vw, 20px);
+  font-size: clamp(14px, 1.6vw, 20px);
   letter-spacing: 0.01em;
-  padding: 10px 12px;
-  border-radius: 12px;
+  transition: color 140ms ease;
+}
+
+.copy{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding: 6px;
+  margin: 0;
+  border-radius: 10px;
+  color: var(--muted2);
+  line-height: 0;
+  cursor: pointer;
   transition: color 140ms ease, background 140ms ease;
 }
 
-.email:hover{
-  color: var(--fg);
-  background: rgba(255,255,255,0.06);
+.copy__icon{
+  width: 18px;
+  height: 18px;
+  display:block;
+  fill: currentColor;
 }
 
-.email:focus-visible{
-  outline: 2px solid rgba(242,242,242,0.85);
+/* Hover = green on email + icon */
+.contact:hover .contact__link,
+.contact:hover .copy,
+.contact__link:hover,
+.copy:hover{
+  color: var(--neon);
+}
+
+.copy:focus-visible,
+.contact__link:focus-visible{
+  outline: 2px solid rgba(118,250,76,0.75);
   outline-offset: 3px;
+}
+
+/* Small screens: keep it clean */
+@media (max-width: 520px){
+  .bottom{
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
+/* Accessible helper */
+.sr-only{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+/* Cursor takeover GIF element */
+#cursor-gif{
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 220px;
+  height: 220px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  background-image: url("/rh-medley.gif");
+  background-size: cover;
+  background-position: center;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+}
+
+/* Only hide system cursor when we’re actively showing the GIF */
+body.cursor-active{
+  cursor: none;
 }
