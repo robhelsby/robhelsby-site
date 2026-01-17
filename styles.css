@@ -77,7 +77,7 @@ body.cursor-active .name{
   align-content:center;
   justify-items:center;
 
-  /* ⬇️ UPDATED: responsive spacing */
+  /* responsive: smaller on mobile, larger on desktop */
   gap: clamp(36px, 6vh, 68px);
 
   padding: 4vh 0;
@@ -151,6 +151,7 @@ body.cursor-active .name{
   opacity: .45;
 }
 
+/* Right -> Left gentle drift */
 @media (prefers-reduced-motion: no-preference){
   .ticker__track{
     animation: drift 40s linear infinite;
@@ -225,6 +226,7 @@ body.cursor-active .name{
   outline-offset: 3px;
 }
 
+/* Small screens: stack footer */
 @media (max-width: 520px){
   .bottom{
     flex-direction: column;
@@ -255,13 +257,14 @@ body.cursor-active .name{
   pointer-events: none;
   z-index: 9999;
   display: none;
-  background-image: url("/rh-medley.gif");
+  background-image: url("/assets/img/rh-medley.gif");
   background-size: cover;
   background-position: center;
   border-radius: 18px;
   box-shadow: 0 14px 40px rgba(0,0,0,0.55);
 }
 
+/* Hide system cursor only while GIF takeover is active */
 body.cursor-active{
   cursor: none;
 }
