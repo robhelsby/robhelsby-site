@@ -1,8 +1,8 @@
 (() => {
-  // ---------- Copy email + auto-hide feedback ----------
+  // Copy email + auto-hide feedback
   const copyBtn = document.getElementById("copy-email");
   const feedback = document.getElementById("copy-feedback");
-  let feedbackTimer = null;
+  let feedbackTimer;
 
   async function copyText(text) {
     if (navigator.clipboard && window.isSecureContext) {
@@ -12,7 +12,7 @@
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
-    ta.style.position = "absolute";
+    ta.style.position = "fixed";
     ta.style.left = "-9999px";
     document.body.appendChild(ta);
     ta.select();
@@ -24,7 +24,7 @@
     if (!feedback) return;
     feedback.textContent = msg;
     feedback.classList.add("is-visible");
-    if (feedbackTimer) clearTimeout(feedbackTimer);
+    clearTimeout(feedbackTimer);
     feedbackTimer = setTimeout(() => {
       feedback.classList.remove("is-visible");
       setTimeout(() => (feedback.textContent = ""), 200);
@@ -33,9 +33,8 @@
 
   if (copyBtn) {
     copyBtn.addEventListener("click", async () => {
-      const text = copyBtn.getAttribute("data-copy") || "";
       try {
-        await copyText(text);
+        await copyText(copyBtn.getAttribute("data-copy") || "");
         showFeedback("Email copied");
       } catch {
         showFeedback("Copy failed");
@@ -43,29 +42,16 @@
     });
   }
 
-  // ---------- Services ticker: tap/click toggles pause ----------
+  // Ticker: tap/click toggles pause
   const ticker = document.getElementById("services-ticker");
   if (ticker) {
-    let ignoreClick = false;
-    const toggle = () => ticker.classList.toggle("is-paused");
-
-    ticker.addEventListener(
-      "touchstart",
-      () => {
-        ignoreClick = true;
-        toggle();
-        setTimeout(() => (ignoreClick = false), 350);
-      },
-      { passive: true }
-    );
-
-    ticker.addEventListener("click", () => {
-      if (ignoreClick) return;
-      toggle();
+    ticker.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      ticker.classList.toggle("is-paused");
     });
   }
 
-  // ---------- GIF: desktop hover follows cursor; mobile tap toggles ----------
+  // GIF: desktop hover follows cursor; mobile tap name toggles, tap anywhere hides (except ticker)
   const trigger = document.getElementById("name-trigger");
   const cursorEl = document.getElementById("cursor-gif");
   if (!trigger || !cursorEl) return;
@@ -103,39 +89,32 @@
       cursorEl.style.display = "block";
       moveTo(e.clientX, e.clientY);
     });
-
     trigger.addEventListener("mousemove", (e) => {
       if (!active) return;
       moveTo(e.clientX, e.clientY);
     });
-
     trigger.addEventListener("mouseleave", hide);
     return;
   }
 
-  // Mobile: tap name toggles; next tap anywhere hides (except ticker)
   const onDocTapToHide = (e) => {
     if (!active) return;
     if (e.target.closest("#services-ticker")) return;
+    if (e.target.closest("#name-trigger")) return;
     hide();
-    document.removeEventListener("touchstart", onDocTapToHide, true);
+    document.removeEventListener("pointerdown", onDocTapToHide, true);
   };
 
-  trigger.addEventListener(
-    "touchstart",
-    (e) => {
-      e.preventDefault();
+  trigger.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
 
-      if (active) {
-        hide();
-        document.removeEventListener("touchstart", onDocTapToHide, true);
-        return;
-      }
+    if (active) {
+      hide();
+      document.removeEventListener("pointerdown", onDocTapToHide, true);
+      return;
+    }
 
-      const t = e.touches && e.touches[0];
-      showAt(t ? t.clientX : innerWidth / 2, t ? t.clientY : innerHeight / 2);
-      document.addEventListener("touchstart", onDocTapToHide, true);
-    },
-    { passive: false }
-  );
+    showAt(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2);
+    document.addEventListener("pointerdown", onDocTapToHide, true);
+  });
 })();
