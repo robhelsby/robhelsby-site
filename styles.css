@@ -1,7 +1,4 @@
 /* ---- Polysans (self-hosted) ---- */
-/* Put the font file here:
-   /fonts/PolySans-SlimWide.woff
-*/
 @font-face{
   font-family: "PolySans";
   src: url("/fonts/PolySans-SlimWide.woff") format("woff");
@@ -70,7 +67,6 @@ body{
   user-select: none;
 }
 
-/* On desktop we’ll hide the system cursor only while takeover is active */
 body.cursor-active .name{
   cursor: none;
 }
@@ -80,7 +76,10 @@ body.cursor-active .name{
   display:grid;
   align-content:center;
   justify-items:center;
-  gap: 68px; /* space between headline and ticker */
+
+  /* ⬇️ UPDATED: responsive spacing */
+  gap: clamp(36px, 6vh, 68px);
+
   padding: 4vh 0;
 }
 
@@ -96,7 +95,6 @@ body.cursor-active .name{
   max-width: 22ch;
 }
 
-/* Each line stays on its own line on desktop, but can wrap on narrow screens */
 .headline-line{
   display:block;
   white-space: normal;
@@ -153,7 +151,6 @@ body.cursor-active .name{
   opacity: .45;
 }
 
-/* Right -> Left gentle drift */
 @media (prefers-reduced-motion: no-preference){
   .ticker__track{
     animation: drift 40s linear infinite;
@@ -215,7 +212,6 @@ body.cursor-active .name{
   fill: currentColor;
 }
 
-/* Hover = green on email + icon */
 .contact:hover .contact__link,
 .contact:hover .copy,
 .contact__link:hover,
@@ -229,7 +225,6 @@ body.cursor-active .name{
   outline-offset: 3px;
 }
 
-/* Small screens: keep it clean */
 @media (max-width: 520px){
   .bottom{
     flex-direction: column;
@@ -249,13 +244,13 @@ body.cursor-active .name{
   border:0;
 }
 
-/* Cursor takeover GIF element */
+/* Cursor takeover GIF */
 #cursor-gif{
   position: fixed;
   left: 0;
   top: 0;
-  width: 220px;
-  height: 220px;
+  width: clamp(120px, 22vw, 220px);
+  height: clamp(120px, 22vw, 220px);
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 9999;
@@ -267,7 +262,6 @@ body.cursor-active .name{
   box-shadow: 0 14px 40px rgba(0,0,0,0.55);
 }
 
-/* Only hide system cursor when we’re actively showing the GIF */
 body.cursor-active{
   cursor: none;
 }
