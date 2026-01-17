@@ -7,37 +7,101 @@
   <title>Rob Helsby</title>
 
   <meta name="color-scheme" content="dark" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="/rh-favicon.png" type="image/png" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Ampersand font only (Bricolage Grotesque Regular) -->
+  <!-- Ampersand font (only used for &) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400&display=swap" rel="stylesheet">
 </head>
 
 <body>
+  <!-- Cursor takeover GIF -->
+  <div id="cursor-gif" aria-hidden="true"></div>
+
   <main class="frame">
     <header class="top">
-      <div class="name">ROB HELSBY</div>
+      <div class="name" id="name-trigger" tabindex="0" aria-label="Rob Helsby">
+        ROB HELSBY
+      </div>
     </header>
 
     <section class="middle" aria-label="Intro">
       <h1 class="headline">
-        <span class="line line-1">
+        <span class="headline-line">
           Creative Director <span class="amp">&amp;</span> Founder
-        </span><br />
-        <span class="line line-2">
+        </span>
+        <span class="headline-line">
           focused on brand and product
-        </span><br />
-        <span class="line line-3">
-          decision making
+        </span>
+        <span class="headline-line">
+          decision making.
         </span>
       </h1>
+
+      <!-- Services ticker (CSS-only) -->
+      <div class="ticker" aria-label="Services">
+        <div class="ticker__mask">
+          <div class="ticker__track">
+            <span class="ticker__item">Executive Leadership + Advisory</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Brand Positioning + Experience</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Workshops + Alignment</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Design Operations + Scale</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Strategy + Narrative</span>
+            <span class="ticker__sep">•</span>
+
+            <!-- duplicate for seamless feel -->
+            <span class="ticker__item">Executive Leadership + Advisory</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Brand Positioning + Experience</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Workshops + Alignment</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Design Operations + Scale</span>
+            <span class="ticker__sep">•</span>
+            <span class="ticker__item">Strategy + Narrative</span>
+            <span class="ticker__sep">•</span>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <footer class="bottom">
-      <a class="email" href="mailto:heyrobhelsby@gmail.com">heyrobhelsby@gmail.com</a>
+    <footer class="bottom" aria-label="Contact">
+      <div class="contact">
+        <a class="contact__link" id="email-link" href="mailto:heyrobhelsby@gmail.com">heyrobhelsby@gmail.com</a>
+
+        <button
+          class="copy"
+          id="copy-email"
+          type="button"
+          aria-label="Copy email address"
+          title="Copy email"
+          data-copy="heyrobhelsby@gmail.com"
+        >
+          <!-- Inline icon uses currentColor so hover turns green -->
+          <svg class="copy__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"/>
+          </svg>
+        </button>
+
+        <span class="sr-only" id="copy-status" aria-live="polite"></span>
+      </div>
+
+      <a class="contact__link" href="https://www.linkedin.com/in/robhelsby/" target="_blank" rel="noreferrer noopener">
+        linkedin.com/robhelsby
+      </a>
     </footer>
   </main>
+
+  <script src="/script.js" defer></script>
 </body>
 </html>
