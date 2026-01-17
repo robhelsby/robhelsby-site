@@ -82,8 +82,19 @@ body{
   letter-spacing: -0.015em;
   font-weight: 400;
 
-  /* widened so 15" MacBook doesn't force decision/making onto separate lines */
-  max-width: min(92vw, 36ch);
+  /* Desktop measure: forces wrap where you want (after “Creative”) */
+  max-width: min(92vw, 30ch);
+
+  /* keep wrapping behaviour sane */
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+@media (min-width: 1200px){
+  /* Slightly more consistent on larger screens */
+  .headline{
+    max-width: 30ch;
+  }
 }
 
 .name-inline{
@@ -152,7 +163,6 @@ body{
   opacity:0.45;
 }
 
-/* Animation */
 @media (prefers-reduced-motion: no-preference){
   .ticker__track{
     animation: drift 40s linear infinite;
@@ -164,13 +174,9 @@ body{
   }
 }
 
-/* Pause on hover/focus (a11y) */
+/* pause on hover/focus (a11y) */
 .ticker:hover .ticker__track,
-.ticker:focus-within .ticker__track{
-  animation-play-state: paused;
-}
-
-/* Pause on tap (touch) via class toggle from script.js */
+.ticker:focus-within .ticker__track,
 .ticker.is-paused .ticker__track{
   animation-play-state: paused;
 }
@@ -195,7 +201,10 @@ body{
 .contact{
   display:inline-flex;
   align-items:center;
-  gap:10px;
+
+  /* was 10px – now 5px (50% closer as requested) */
+  gap: 5px;
+
   min-width: 0;
 }
 
@@ -211,7 +220,10 @@ body{
   appearance:none;
   border:0;
   background:transparent;
-  padding:6px;
+
+  /* reduce padding so the icon sits closer to the text */
+  padding: 4px;
+
   margin:0;
   border-radius:10px;
   cursor:pointer;
@@ -221,8 +233,9 @@ body{
 }
 
 .copy__icon{
-  width:17px;
-  height:17px;
+  /* was 17px – bump for better “weight” */
+  width: 24px;
+  height: 24px;
   display:block;
 }
 
