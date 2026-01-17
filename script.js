@@ -1,12 +1,10 @@
-/* =========================
-SCRIPT.JS (FULL)
-========================= */
 (() => {
   // -----------------------------
-  // Copy email to clipboard
+  // Copy email + feedback (auto hide after 3s)
   // -----------------------------
   const copyBtn = document.getElementById("copy-email");
-  const status = document.getElementById("copy-status");
+  const feedback = document.getElementById("copy-feedback");
+  let feedbackTimer = null;
 
   async function copyText(text) {
     if (navigator.clipboard && window.isSecureContext) {
@@ -24,114 +22,117 @@ SCRIPT.JS (FULL)
     document.body.removeChild(ta);
   }
 
+  function showFeedback(msg) {
+    if (!feedback) return;
+    feedback.textContent = msg;
+    feedback.classList.add("is-visible");
+
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+      feedback.classList.remove("is-visible");
+      setTimeout(() => { feedback.textContent = ""; }, 250);
+    }, 3000);
+  }
+
   if (copyBtn) {
     copyBtn.addEventListener("click", async () => {
       const text = copyBtn.getAttribute("data-copy") || "";
       try {
         await copyText(text);
-        if (status) status.textContent = "Email copied";
+        showFeedback("Email copied");
       } catch {
-        if (status) status.textContent = "Copy failed";
+        showFeedback("Copy failed");
       }
     });
   }
 
   // -----------------------------
   // Cursor takeover GIF
+  // Desktop: hover follows cursor
+  // Touch: tap name toggles GIF, next tap anywhere hides it
   // -----------------------------
   const trigger = document.getElementById("name-trigger");
   const cursorEl = document.getElementById("cursor-gif");
-  if (!trigger || !cursorEl) return;
-
   const body = document.body;
-  const isTouch =
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0;
 
-  let active = false;
-  let holdTimer = null;
+  if (trigger && cursorEl) {
+    const isTouch =
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0;
 
-  const show = () => {
-    if (active) return;
-    active = true;
-    cursorEl.style.display = "block";
-    body.classList.add("cursor-active");
-  };
+    let active = false;
 
-  const hide = () => {
-    active = false;
-    cursorEl.style.display = "none";
-    body.classList.remove("cursor-active");
-  };
-
-  const moveTo = (x, y) => {
-    cursorEl.style.left = `${x}px`;
-    cursorEl.style.top = `${y}px`;
-  };
-
-  // Desktop hover
-  if (!isTouch) {
-    trigger.addEventListener("mouseenter", (e) => {
-      show();
-      moveTo(e.clientX, e.clientY);
-    });
-    trigger.addEventListener("mousemove", (e) => {
-      if (!active) return;
-      moveTo(e.clientX, e.clientY);
-    });
-    trigger.addEventListener("mouseleave", hide);
-  }
-
-  // Touch + hold
-  if (isTouch) {
-    const HOLD_MS = 350;
-
-    trigger.addEventListener("touchstart", (e) => {
-      if (holdTimer) clearTimeout(holdTimer);
-      holdTimer = setTimeout(() => {
-        const t = e.touches && e.touches[0];
-        if (!t) return;
-        show();
-        moveTo(t.clientX, t.clientY);
-      }, HOLD_MS);
-    }, { passive: true });
-
-    trigger.addEventListener("touchmove", (e) => {
-      if (!active) return;
-      const t = e.touches && e.touches[0];
-      if (!t) return;
-      moveTo(t.clientX, t.clientY);
-    }, { passive: true });
-
-    const end = () => {
-      if (holdTimer) clearTimeout(holdTimer);
-      holdTimer = null;
-      hide();
+    const showAt = (x, y) => {
+      active = true;
+      cursorEl.style.display = "block";
+      cursorEl.style.left = `${x}px`;
+      cursorEl.style.top = `${y}px`;
     };
 
-    trigger.addEventListener("touchend", end);
-    trigger.addEventListener("touchcancel", end);
+    const hide = () => {
+      active = false;
+      cursorEl.style.display = "none";
+      body.classList.remove("cursor-active");
+    };
+
+    // Desktop behaviour
+    if (!isTouch) {
+      trigger.addEventListener("mouseenter", (e) => {
+        active = true;
+        body.classList.add("cursor-active");
+        cursorEl.style.display = "block";
+        cursorEl.style.left = `${e.clientX}px`;
+        cursorEl.style.top = `${e.clientY}px`;
+      });
+
+      trigger.addEventListener("mousemove", (e) => {
+        if (!active) return;
+        cursorEl.style.left = `${e.clientX}px`;
+        cursorEl.style.top = `${e.clientY}px`;
+      });
+
+      trigger.addEventListener("mouseleave", () => {
+        hide();
+      });
+    }
+
+    // Touch behaviour: tap name toggles, then tap anywhere hides
+    if (isTouch) {
+      const onDocTapToHide = () => {
+        if (!active) return;
+        hide();
+        document.removeEventListener("touchstart", onDocTapToHide, true);
+      };
+
+      trigger.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+
+        if (active) {
+          hide();
+          document.removeEventListener("touchstart", onDocTapToHide, true);
+          return;
+        }
+
+        const t = e.touches && e.touches[0];
+        const x = t ? t.clientX : (window.innerWidth / 2);
+        const y = t ? t.clientY : (window.innerHeight / 2);
+
+        showAt(x, y);
+
+        // next tap anywhere hides
+        document.addEventListener("touchstart", onDocTapToHide, true);
+      }, { passive: false });
+    }
   }
 
   // -----------------------------
-  // Ticker pause on tap (touch)
+  // Ticker pause on tap (mobile) / click (desktop)
   // -----------------------------
   const ticker = document.getElementById("services-ticker");
   if (ticker) {
-    ticker.addEventListener("click", (e) => {
-      // Prevent accidental text selection / double-tap zoom behaviour
-      // Toggle paused state
+    ticker.addEventListener("click", () => {
       ticker.classList.toggle("is-paused");
     });
-
-    // Optional: also allow keyboard users to pause via Enter/Space if you later add tabindex
-    // ticker.setAttribute("tabindex", "0");
-    // ticker.addEventListener("keydown", (e) => {
-    //   if (e.key === "Enter" || e.key === " ") {
-    //     e.preventDefault();
-    //     ticker.classList.toggle("is-paused");
-    //   }
-    // });
   }
 })();
