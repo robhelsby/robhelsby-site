@@ -1,22 +1,80 @@
 (() => {
-  const trigger = document.getElementById("name-trigger");
-  const cursorEl = document.getElementById("cursor-gif");
-  const ticker = document.getElementById("services-ticker");
+  // ---------- Copy email + auto-hide feedback ----------
+  const copyBtn = document.getElementById("copy-email");
+  const feedback = document.getElementById("copy-feedback");
+  let feedbackTimer = null;
 
-  if (ticker) {
-    ticker.addEventListener("click", () => {
-      ticker.classList.toggle("is-paused");
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "absolute";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
+
+  function showFeedback(msg) {
+    if (!feedback) return;
+    feedback.textContent = msg;
+    feedback.classList.add("is-visible");
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+      feedback.classList.remove("is-visible");
+      setTimeout(() => (feedback.textContent = ""), 200);
+    }, 3000);
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      const text = copyBtn.getAttribute("data-copy") || "";
+      try {
+        await copyText(text);
+        showFeedback("Email copied");
+      } catch {
+        showFeedback("Copy failed");
+      }
     });
   }
 
+  // ---------- Services ticker: tap/click toggles pause ----------
+  const ticker = document.getElementById("services-ticker");
+  if (ticker) {
+    let ignoreClick = false;
+    const toggle = () => ticker.classList.toggle("is-paused");
+
+    ticker.addEventListener(
+      "touchstart",
+      () => {
+        ignoreClick = true;
+        toggle();
+        setTimeout(() => (ignoreClick = false), 350);
+      },
+      { passive: true }
+    );
+
+    ticker.addEventListener("click", () => {
+      if (ignoreClick) return;
+      toggle();
+    });
+  }
+
+  // ---------- GIF: desktop hover follows cursor; mobile tap toggles ----------
+  const trigger = document.getElementById("name-trigger");
+  const cursorEl = document.getElementById("cursor-gif");
   if (!trigger || !cursorEl) return;
 
+  const body = document.body;
   const isTouch =
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
     navigator.msMaxTouchPoints > 0;
-
-  if (!isTouch) return;
 
   let active = false;
 
@@ -30,9 +88,32 @@
   const hide = () => {
     active = false;
     cursorEl.style.display = "none";
-    document.body.classList.remove("cursor-active");
+    body.classList.remove("cursor-active");
   };
 
+  const moveTo = (x, y) => {
+    cursorEl.style.left = `${x}px`;
+    cursorEl.style.top = `${y}px`;
+  };
+
+  if (!isTouch) {
+    trigger.addEventListener("mouseenter", (e) => {
+      active = true;
+      body.classList.add("cursor-active");
+      cursorEl.style.display = "block";
+      moveTo(e.clientX, e.clientY);
+    });
+
+    trigger.addEventListener("mousemove", (e) => {
+      if (!active) return;
+      moveTo(e.clientX, e.clientY);
+    });
+
+    trigger.addEventListener("mouseleave", hide);
+    return;
+  }
+
+  // Mobile: tap name toggles; next tap anywhere hides (except ticker)
   const onDocTapToHide = (e) => {
     if (!active) return;
     if (e.target.closest("#services-ticker")) return;
