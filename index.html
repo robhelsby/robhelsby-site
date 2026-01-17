@@ -1,3 +1,6 @@
+<!-- =========================
+INDEX.HTML (FULL)
+========================= -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -21,28 +24,19 @@
 </head>
 
 <body>
-  <!-- Cursor takeover GIF (hidden unless active) -->
+  <!-- Cursor takeover GIF -->
   <div id="cursor-gif" aria-hidden="true"></div>
 
   <main class="frame">
     <section class="middle" aria-label="Intro">
       <h1 class="headline">
-        <span class="headline-line">
-          <span class="name-inline" id="name-trigger" tabindex="0" aria-label="Rob Helsby">Rob Helsby</span>
-          <span class="headline-rest"> is a Creative Director</span>
-        </span>
-
-        <span class="headline-line">
-          <span class="amp">&amp;</span> Founder focused on brand
-        </span>
-
-        <span class="headline-line">
-          and product&nbsp;decision-making
-        </span>
+        <span class="name-inline" id="name-trigger" tabindex="0" aria-label="Rob Helsby">Rob Helsby</span>
+        is a Creative Director <span class="amp">&amp;</span> Founder focused on brand and
+        product&nbsp;decision-making
       </h1>
 
-      <!-- Services ticker (CSS-only) -->
-      <div class="ticker" aria-label="Services">
+      <!-- Services ticker (pauses on hover + tap) -->
+      <div class="ticker" id="services-ticker" aria-label="Services" role="region">
         <div class="ticker__mask">
           <div class="ticker__track">
             <span class="ticker__item">Executive Leadership + Advisory</span>
@@ -56,7 +50,7 @@
             <span class="ticker__item">Strategy + Narrative</span>
             <span class="ticker__sep">•</span>
 
-            <!-- duplicate for seamless feel -->
+            <!-- duplicate -->
             <span class="ticker__item">Executive Leadership + Advisory</span>
             <span class="ticker__sep">•</span>
             <span class="ticker__item">Brand Positioning + Experience</span>
@@ -84,8 +78,13 @@
           title="Copy email"
           data-copy="heyrobhelsby@gmail.com"
         >
+          <!-- Paste YOUR inline SVG here.
+               IMPORTANT: ensure paths use fill="currentColor" or stroke="currentColor". -->
           <svg class="copy__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"/>
+            <rect x="9" y="9" width="11" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M6 15H5.8C4.8 15 4 14.2 4 13.2V5.8C4 4.8 4.8 4 5.8 4h7.4C14.2 4 15 4.8 15 5.8V6"
+                  fill="none" stroke="currentColor" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
 
