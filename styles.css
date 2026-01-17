@@ -1,3 +1,6 @@
+/* =========================
+STYLES.CSS (FULL)
+========================= */
 @font-face{
   font-family: "PolySans";
   src: url("/fonts/PolySans-SlimWide.woff") format("woff");
@@ -26,6 +29,7 @@ body{
   text-rendering: geometricPrecision;
 }
 
+/* subtle vignette */
 .frame::before{
   content:"";
   position:fixed;
@@ -66,22 +70,17 @@ body{
   line-height: 1.08;
   font-weight: 400;
   letter-spacing: -0.015em;
-  max-width: 26ch;
+  max-width: min(92vw, 34ch);
 }
 
-.headline-line{
-  display:block;
-  white-space: normal;
+@media (max-width: 520px){
+  .headline{ max-width: 92vw; }
 }
 
 .name-inline{
   color: var(--neon);
   display:inline-block;
   user-select:none;
-}
-
-.headline-rest{
-  color: var(--fg);
 }
 
 .amp{
@@ -92,14 +91,6 @@ body{
   top: 0.02em;
 }
 
-/* Hide system cursor only while GIF takeover is active */
-body.cursor-active{
-  cursor: none;
-}
-body.cursor-active #name-trigger{
-  cursor: none;
-}
-
 /* TICKER */
 .ticker{
   position:relative;
@@ -108,6 +99,8 @@ body.cursor-active #name-trigger{
   color: var(--muted);
   font-size: clamp(16px, 1.7vw, 26px);
   line-height: 1.2;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ticker__mask{
@@ -141,15 +134,26 @@ body.cursor-active #name-trigger{
 
 .ticker__sep{ opacity: .45; }
 
+/* Animation */
 @media (prefers-reduced-motion: no-preference){
-  .ticker__track{
-    animation: drift 40s linear infinite;
-  }
+  .ticker__track{ animation: drift 40s linear infinite; }
   @keyframes drift{
     from{ transform: translateX(0%); }
     to{ transform: translateX(-25%); }
   }
 }
+
+/* Pause on hover/focus for accessibility */
+.ticker:hover .ticker__track,
+.ticker:focus-within .ticker__track{
+  animation-play-state: paused;
+}
+
+/* Pause on tap (touch devices) by toggling a class */
+.ticker.is-paused .ticker__track{
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce){
   .ticker__track{ animation:none; }
 }
@@ -190,16 +194,17 @@ body.cursor-active #name-trigger{
   color: var(--muted2);
   line-height: 0;
   cursor: pointer;
-  transition: color 140ms ease, background 140ms ease;
+  transition: color 140ms ease;
 }
 
 .copy__icon{
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   display:block;
-  fill: currentColor;
+  opacity: 0.95;
 }
 
+/* Hover = green */
 .contact:hover .contact__link,
 .contact:hover .copy,
 .contact__link:hover,
@@ -222,7 +227,7 @@ body.cursor-active #name-trigger{
   }
 }
 
-/* Accessible helper */
+/* a11y helper */
 .sr-only{
   position:absolute;
   width:1px;height:1px;
@@ -250,3 +255,7 @@ body.cursor-active #name-trigger{
   border-radius: 18px;
   box-shadow: 0 14px 40px rgba(0,0,0,0.55);
 }
+
+/* only hide cursor while takeover is active */
+body.cursor-active{ cursor: none; }
+body.cursor-active #name-trigger{ cursor: none; }
