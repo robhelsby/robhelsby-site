@@ -70,11 +70,12 @@ body{
   letter-spacing: -0.015em;
   font-weight: 400;
 
-  /* Intentional desktop measure */
   max-width: min(92vw, 30ch);
 
+  /* This is the important bit for iOS overflow */
+  white-space: normal;
+  overflow-wrap: anywhere; /* prevents off-screen overflow */
   word-break: normal;
-  overflow-wrap: normal;
 }
 
 .name-inline{
@@ -94,10 +95,10 @@ body{
 
 .nowrap{ white-space: nowrap; }
 
-/* Mobile-only forced line break before “product …” */
-.mobile-break{ display:none; }
+/* Mobile-only forced break before “product” */
+.br-mobile{ display:none; }
 @media (max-width: 520px){
-  .mobile-break{ display:block; height: 0; }
+  .br-mobile{ display:block; }
 }
 
 /* =========================
