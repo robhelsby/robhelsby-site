@@ -1,6 +1,3 @@
-/* =========================
-   FONTS
-========================= */
 @font-face{
   font-family: "PolySans";
   src: url("/fonts/PolySans-SlimWide.woff") format("woff");
@@ -9,14 +6,8 @@
   font-display: swap;
 }
 
-/* =========================
-   RESET / BASE
-========================= */
 *{ box-sizing:border-box; }
-
-html, body{
-  height:100%;
-}
+html, body{ height:100%; }
 
 :root{
   --bg:#050505;
@@ -35,9 +26,6 @@ body{
   text-rendering: geometricPrecision;
 }
 
-/* =========================
-   LAYOUT
-========================= */
 .frame{
   min-height:100svh;
   display:grid;
@@ -82,19 +70,11 @@ body{
   letter-spacing: -0.015em;
   font-weight: 400;
 
-  /* Desktop measure: forces wrap where you want (after “Creative”) */
+  /* Intentional desktop measure */
   max-width: min(92vw, 30ch);
 
-  /* keep wrapping behaviour sane */
   word-break: normal;
   overflow-wrap: normal;
-}
-
-@media (min-width: 1200px){
-  /* Slightly more consistent on larger screens */
-  .headline{
-    max-width: 30ch;
-  }
 }
 
 .name-inline{
@@ -112,9 +92,12 @@ body{
   top: 0.02em;
 }
 
-/* Utility: keep a phrase together */
-.nowrap{
-  white-space: nowrap;
+.nowrap{ white-space: nowrap; }
+
+/* Mobile-only forced line break before “product …” */
+.mobile-break{ display:none; }
+@media (max-width: 520px){
+  .mobile-break{ display:block; height: 0; }
 }
 
 /* =========================
@@ -135,20 +118,8 @@ body{
   overflow:hidden;
   padding: 6px 0;
 
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 12%,
-    black 88%,
-    transparent 100%
-  );
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
 }
 
 .ticker__track{
@@ -159,22 +130,17 @@ body{
   will-change:transform;
 }
 
-.ticker__sep{
-  opacity:0.45;
-}
+.ticker__sep{ opacity:0.45; }
 
 @media (prefers-reduced-motion: no-preference){
-  .ticker__track{
-    animation: drift 40s linear infinite;
-  }
-
+  .ticker__track{ animation: drift 40s linear infinite; }
   @keyframes drift{
     from{ transform: translateX(0); }
     to{ transform: translateX(-25%); }
   }
 }
 
-/* pause on hover/focus (a11y) */
+/* Pause on hover/focus + tap toggle */
 .ticker:hover .ticker__track,
 .ticker:focus-within .ticker__track,
 .ticker.is-paused .ticker__track{
@@ -201,11 +167,8 @@ body{
 .contact{
   display:inline-flex;
   align-items:center;
-
-  /* was 10px – now 5px (50% closer as requested) */
   gap: 5px;
-
-  min-width: 0;
+  min-width:0;
 }
 
 .contact__link{
@@ -220,10 +183,7 @@ body{
   appearance:none;
   border:0;
   background:transparent;
-
-  /* reduce padding so the icon sits closer to the text */
   padding: 4px;
-
   margin:0;
   border-radius:10px;
   cursor:pointer;
@@ -233,13 +193,22 @@ body{
 }
 
 .copy__icon{
-  /* was 17px – bump for better “weight” */
   width: 24px;
   height: 24px;
   display:block;
 }
 
-/* hover states */
+.copy-feedback{
+  margin-left: 6px;
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: var(--neon);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  white-space: nowrap;
+}
+
+.copy-feedback.is-visible{ opacity: 1; }
+
 .contact:hover .contact__link,
 .contact:hover .copy,
 .contact__link:hover,
@@ -254,9 +223,6 @@ body{
   outline-offset: 3px;
 }
 
-/* =========================
-   MOBILE
-========================= */
 @media (max-width: 520px){
   .bottom{
     flex-direction:column;
@@ -285,10 +251,6 @@ body{
   z-index:9999;
 }
 
-/* hide cursor only during takeover */
-body.cursor-active{
-  cursor:none;
-}
-body.cursor-active #name-trigger{
-  cursor:none;
-}
+/* hide cursor only during takeover (desktop hover) */
+body.cursor-active{ cursor:none; }
+body.cursor-active #name-trigger{ cursor:none; }
