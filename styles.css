@@ -151,8 +151,15 @@ body{
 }
 
 /* Pause on hover/focus + tap toggle */
-.ticker:hover .ticker__track,
-.ticker:focus-within .ticker__track,
+/* Only pause-on-hover for real hover devices (desktop) */
+@media (hover: hover) and (pointer: fine){
+  .ticker:hover .ticker__track,
+  .ticker:focus-within .ticker__track{
+    animation-play-state: paused;
+  }
+}
+
+/* Tap/click toggle pause (all devices) */
 .ticker.is-paused .ticker__track{
   animation-play-state: paused;
 }
