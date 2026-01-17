@@ -1,5 +1,10 @@
+/* =========================
+SCRIPT.JS (FULL)
+========================= */
 (() => {
+  // -----------------------------
   // Copy email to clipboard
+  // -----------------------------
   const copyBtn = document.getElementById("copy-email");
   const status = document.getElementById("copy-status");
 
@@ -31,7 +36,9 @@
     });
   }
 
+  // -----------------------------
   // Cursor takeover GIF
+  // -----------------------------
   const trigger = document.getElementById("name-trigger");
   const cursorEl = document.getElementById("cursor-gif");
   if (!trigger || !cursorEl) return;
@@ -105,5 +112,26 @@
 
     trigger.addEventListener("touchend", end);
     trigger.addEventListener("touchcancel", end);
+  }
+
+  // -----------------------------
+  // Ticker pause on tap (touch)
+  // -----------------------------
+  const ticker = document.getElementById("services-ticker");
+  if (ticker) {
+    ticker.addEventListener("click", (e) => {
+      // Prevent accidental text selection / double-tap zoom behaviour
+      // Toggle paused state
+      ticker.classList.toggle("is-paused");
+    });
+
+    // Optional: also allow keyboard users to pause via Enter/Space if you later add tabindex
+    // ticker.setAttribute("tabindex", "0");
+    // ticker.addEventListener("keydown", (e) => {
+    //   if (e.key === "Enter" || e.key === " ") {
+    //     e.preventDefault();
+    //     ticker.classList.toggle("is-paused");
+    //   }
+    // });
   }
 })();
