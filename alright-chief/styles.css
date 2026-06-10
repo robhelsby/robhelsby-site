@@ -350,24 +350,82 @@ h1.display {
 .answer-box input[type="text"]:focus { border-color: var(--ink-faint); }
 .answer-box input[type="text"]::placeholder { color: var(--ink-faint); }
 
-.voice-note {
+/* ---------- Voice-first input ---------- */
+
+.voice-box {
+  margin-top: 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  color: var(--ink-faint);
-  font-size: 12.5px;
-  margin-top: 4px;
+  text-align: center;
+  gap: 14px;
 }
 
-.voice-note__dot {
-  width: 30px; height: 30px;
+.mic-btn {
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
   border: 1px solid var(--line);
+  background: var(--bg-raise);
+  color: var(--accent);
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  color: var(--ink-dim);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
+
+.mic-btn:hover { border-color: var(--accent); }
+.mic-btn:active { transform: scale(0.95); }
+
+.mic-btn.is-listening {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  animation: mic-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 146, 60, 0.35); }
+  50% { box-shadow: 0 0 0 18px rgba(232, 146, 60, 0); }
+}
+
+.voice-status {
+  font-size: 13px;
+  color: var(--ink-faint);
+  min-height: 18px;
+}
+
+.transcript {
+  width: 100%;
+  min-height: 56px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 15px 16px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.transcript.is-empty::before {
+  content: "Your words land here.";
+  color: var(--ink-faint);
+}
+
+.voice-box__alts {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.voice-box .btn--primary,
+.answer-box .btn--primary { width: 100%; }
+
+.voice-notice { color: var(--accent); }
+
+.answer-box .voice-box__alts { align-self: center; }
 
 /* ---------- Buddy generation / reveal ---------- */
 

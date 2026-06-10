@@ -26,6 +26,7 @@
     buddy: null,               // { config, name, imageUrl? } — imageUrl set when a Midjourney render is plugged in
     entries: [],               // { dateKey, iso, lost, gained }
     llmInsight: null,          // { dateKey, count, text } — daily cached Claude insight
+    inputMode: null,           // 'voice' | 'text' — user's last-used input mode; voice is the default
   });
 
   let state = load();
@@ -222,6 +223,154 @@
       return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your buddy" data-buddy />`;
     }
     return buddySVG(b.config, opts);
+  }
+
+  /* ----------------------------------------------------------
+     Voice-first input — Web Speech API
+     Voice is the primary interface; text is a fully considered
+     fallback, not a consolation prize. The component renders a
+     tap-to-talk mic with a live transcript, defaults to voice
+     when the browser supports it, and remembers whichever mode
+     the dad last chose. Mic denied or unsupported → text.
+     ---------------------------------------------------------- */
+
+  const Speech = (() => {
+    const Ctor = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition || null;
+    return { Ctor, supported: () => !!Ctor };
+  })();
+
+  const MIC_ICON = `
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+      <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+      <path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v4"/>
+    </svg>`;
+
+  // Mounts a voice-first answer input into `mount`.
+  // opts: { placeholder, submitLabel, maxLength, onSubmit(value), onSkip?, skipLabel? }
+  function createAnswerInput(mount, opts) {
+    let mode = state.inputMode || (Speech.supported() ? "voice" : "text");
+    if (mode === "voice" && !Speech.supported()) mode = "text";
+    let value = "";
+    let interim = "";
+    let rec = null;
+    let listening = false;
+    let notice = "";
+    const maxLen = opts.maxLength || 160;
+
+    const $ = (sel) => mount.querySelector(sel);
+
+    function html() {
+      const skipBtn = opts.onSkip
+        ? `<button class="btn btn--quiet" data-act="skip">${esc(opts.skipLabel || "Skip this one")}</button>`
+        : "";
+      if (mode === "voice") {
+        return `
+          <div class="voice-box">
+            <button type="button" class="mic-btn" data-act="mic" aria-label="Tap to talk">${MIC_ICON}</button>
+            <p class="voice-status" data-ref="status"></p>
+            <p class="transcript is-empty" data-ref="transcript" aria-live="polite"></p>
+            ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
+            <button class="btn btn--primary" data-act="submit" disabled>${esc(opts.submitLabel)}</button>
+            <div class="voice-box__alts">
+              <button class="btn btn--quiet" data-act="toggle">Rather type it?</button>
+              ${skipBtn}
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="answer-box">
+          <textarea data-ref="ta" placeholder="${esc(opts.placeholder)}" maxlength="${maxLen}">${esc(value)}</textarea>
+          ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
+          <button class="btn btn--primary" data-act="submit" ${value.trim() ? "" : "disabled"}>${esc(opts.submitLabel)}</button>
+          <div class="voice-box__alts">
+            ${Speech.supported() ? `<button class="btn btn--quiet" data-act="toggle">Say it instead</button>` : ""}
+            ${skipBtn}
+          </div>
+        </div>`;
+    }
+
+    function updateVoiceUI() {
+      const status = $("[data-ref=status]");
+      if (!status) return;
+      const transcript = $("[data-ref=transcript]");
+      const submit = $("[data-act=submit]");
+      const mic = $("[data-act=mic]");
+      const text = (value + (interim ? " " + interim : "")).trim();
+      transcript.textContent = text;
+      transcript.classList.toggle("is-empty", !text);
+      if (listening) status.textContent = "Listening. Tap again when you're done.";
+      else if (value.trim()) status.textContent = "Tap the mic to add more, or send it.";
+      else status.textContent = "Tap the mic and just say it.";
+      mic.classList.toggle("is-listening", listening);
+      submit.disabled = value.trim().length === 0;
+    }
+
+    function startListening() {
+      rec = new Speech.Ctor();
+      rec.lang = "en-GB";
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (ev) => {
+        interim = "";
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const r = ev.results[i];
+          if (r.isFinal) value = (value + " " + r[0].transcript).trim().slice(0, maxLen);
+          else interim += r[0].transcript;
+        }
+        updateVoiceUI();
+      };
+      rec.onend = () => { listening = false; interim = ""; updateVoiceUI(); };
+      rec.onerror = (ev) => {
+        listening = false;
+        if (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture") {
+          notice = "Couldn't get to the mic — no drama, type it instead.";
+          mode = "text";
+          state.inputMode = "text";
+          save();
+          renderInput();
+        } else {
+          updateVoiceUI();
+        }
+      };
+      try { rec.start(); listening = true; } catch (e) { listening = false; }
+      updateVoiceUI();
+    }
+
+    function stopListening() {
+      if (rec) { try { rec.stop(); } catch (e) { /* already stopped */ } }
+      listening = false;
+    }
+
+    function wire() {
+      const submit = $("[data-act=submit]");
+      if (mode === "voice") {
+        $("[data-act=mic]").addEventListener("click", () => {
+          if (listening) { stopListening(); updateVoiceUI(); }
+          else startListening();
+        });
+        submit.addEventListener("click", () => { stopListening(); opts.onSubmit(value.trim()); });
+        updateVoiceUI();
+      } else {
+        const ta = $("[data-ref=ta]");
+        ta.addEventListener("input", () => { value = ta.value; submit.disabled = value.trim().length === 0; });
+        submit.addEventListener("click", () => { opts.onSubmit(ta.value.trim()); });
+        ta.focus();
+      }
+      const toggle = $("[data-act=toggle]");
+      if (toggle) toggle.addEventListener("click", () => {
+        stopListening();
+        mode = mode === "voice" ? "text" : "voice";
+        state.inputMode = mode;
+        save();
+        notice = "";
+        renderInput();
+      });
+      const skip = $("[data-act=skip]");
+      if (skip) skip.addEventListener("click", () => { stopListening(); opts.onSkip(); });
+    }
+
+    function renderInput() { mount.innerHTML = html(); wire(); }
+    renderInput();
   }
 
   /* ----------------------------------------------------------
@@ -566,18 +715,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       ? `<div class="chips">${q.options.map((o) => `<button class="chip" data-opt="${esc(o)}">${esc(o)}</button>`).join("")}</div>`
       : "";
 
-    const textbox = q.type === "text" ? `
-      <div class="answer-box">
-        <textarea id="ob-answer" placeholder="${esc(q.placeholder)}" maxlength="160"></textarea>
-        <div class="voice-note">
-          <span class="voice-note__dot">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v4"/></svg>
-          </span>
-          <span>Voice-first in the real thing — you'd just say it. Typing's here for the 11pm-next-to-a-sleeping-partner crowd.</span>
-        </div>
-        <button class="btn btn--primary" data-act="submit" disabled>Next</button>
-        <button class="btn btn--quiet" data-act="skip">Skip this one</button>
-      </div>` : "";
+    const textbox = q.type === "text" ? `<div id="answer-mount"></div>` : "";
 
     app.innerHTML = `
       <div class="screen convo">
@@ -613,12 +751,13 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       app.querySelectorAll(".chip").forEach((c) =>
         c.addEventListener("click", () => advance(c.dataset.opt)));
     } else {
-      const ta = app.querySelector("#ob-answer");
-      const btn = app.querySelector("[data-act=submit]");
-      ta.addEventListener("input", () => { btn.disabled = ta.value.trim().length === 0; });
-      ta.focus();
-      btn.addEventListener("click", () => advance(ta.value.trim()));
-      on("[data-act=skip]", () => advance(""));
+      createAnswerInput(app.querySelector("#answer-mount"), {
+        placeholder: q.placeholder,
+        submitLabel: "Next",
+        maxLength: 160,
+        onSubmit: advance,
+        onSkip: () => advance(""),
+      });
     }
   }
 
@@ -895,33 +1034,29 @@ Write one observation in the Alright Chief voice that connects the lost and gain
           <p class="checkin-side ${isLost ? "checkin-side--lost" : "checkin-side--gained"}">${isLost ? "The lost column" : "The gained column"}</p>
           <h2 class="q-text">${esc(prompt.q)}</h2>
           <p class="q-sub">${esc(prompt.sub)}</p>
-          <div class="answer-box">
-            <textarea id="ci-answer" placeholder="${isLost ? "e.g. a lie-in. A whole film. A clear head." : "e.g. patience you didn't know you had."}" maxlength="140"></textarea>
-            <button class="btn btn--primary" data-act="next" disabled>${isLost ? "Next" : "Put it in the ledger"}</button>
-          </div>
+          <div id="answer-mount"></div>
         </div>
       </div>`;
 
-    const ta = app.querySelector("#ci-answer");
-    const btn = app.querySelector("[data-act=next]");
-    ta.addEventListener("input", () => { btn.disabled = ta.value.trim().length === 0; });
-    ta.focus();
-
-    btn.addEventListener("click", () => {
-      const val = ta.value.trim();
-      if (isLost) {
-        state.checkin = { step: "gained", lost: val };
-        set({});
-      } else {
-        state.entries.push({
-          dateKey: dateKey(),
-          iso: new Date().toISOString(),
-          lost: state.checkin.lost,
-          gained: val,
-        });
-        state.checkin = { step: "done" };
-        set({});
-      }
+    createAnswerInput(app.querySelector("#answer-mount"), {
+      placeholder: isLost ? "e.g. a lie-in. A whole film. A clear head." : "e.g. patience you didn't know you had.",
+      submitLabel: isLost ? "Next" : "Put it in the ledger",
+      maxLength: 140,
+      onSubmit: (val) => {
+        if (isLost) {
+          state.checkin = { step: "gained", lost: val };
+          set({});
+        } else {
+          state.entries.push({
+            dateKey: dateKey(),
+            iso: new Date().toISOString(),
+            lost: state.checkin.lost,
+            gained: val,
+          });
+          state.checkin = { step: "done" };
+          set({});
+        }
+      },
     });
 
     on("[data-act=cancel]", () => set({ checkin: null }));

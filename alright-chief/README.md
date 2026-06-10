@@ -25,19 +25,32 @@ Mapped to the product shape in the workshop brief:
 
 1. **Onboarding — conversational, one question at a time.** Three "dad admin" questions
    (baby's age, first/second, who's at home), then the pivot to three genuinely personal
-   questions (the old Saturdays, what he misses, what he loved). Voice-first is signposted;
-   text is the working input.
+   questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
+   text fallback (see below).
 2. **Character generation — the buddy.** A generative, non-human creature seeded from the
    dad's own answers (procedural SVG: body shape, palette, eyes, sprouts all vary). Named by
    the user; "spin up another" re-rolls.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
-   Not scored, no streaks.
+   Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
 5. **Observe / interact.** The buddy has its own quiet life doing lost-column things
    vicariously; poke it for small, low-stakes reactions.
 6. **Insights.** After a few entries the app starts reflecting the ledger back —
    "a mirror, not a notification."
 7. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
+
+## Voice-first input
+
+The lost/gained check-in and the personal onboarding questions default to a **tap-to-talk
+voice interface** built on the browser's Web Speech API (`SpeechRecognition`, `en-GB`):
+
+- Tap the mic, say it, watch the live transcript land; tap again to stop, add more, or send.
+- **"Rather type it?"** switches to the text input (and **"Say it instead"** switches back) —
+  text is a fully considered fallback, not a consolation prize. The last-used mode is
+  remembered.
+- If speech recognition isn't supported (e.g. Firefox) or mic access is denied, the
+  component falls back to text automatically. Voice works best in Chrome/Edge/Safari over
+  HTTPS or localhost.
 
 ## LLM language interface (Claude)
 
