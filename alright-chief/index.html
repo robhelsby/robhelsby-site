@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Alright Chief — a transition app for new dads who want to feel like themselves while becoming the father their family needs. Prototype v0.1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#15120e" />
+  <title>Alright Chief — Prototype</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="stage">
+    <div class="phone" id="phone">
+      <div class="phone__screen">
+        <div id="app" class="app" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <aside class="stage-note" aria-hidden="true">
+      <p class="stage-note__brand">Alright Chief</p>
+      <p>First-pass prototype · v0.1</p>
+      <p>A transition app for new dads who want to feel like themselves while becoming the father their family needs.</p>
+      <p class="stage-note__hint">Everything is clickable. Data lives in your browser only.</p>
+      <div class="stage-note__actions">
+        <button type="button" id="seed-demo">Load demo data (month three)</button>
+        <button type="button" id="reset-proto">Reset prototype</button>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Language interface</p>
+        <p>Conversational copy is generated live by Claude when a key is connected; otherwise the scripted fallback voice is used. Status: <strong id="llm-status">scripted fallback</strong></p>
+        <input id="api-key-input" type="password" placeholder="Anthropic API key" autocomplete="off" />
+        <div class="stage-note__row">
+          <button type="button" id="save-key">Connect Claude</button>
+          <button type="button" id="clear-key">Disconnect</button>
+        </div>
+        <p class="stage-note__hint">Key is stored in this browser only and sent directly to the Claude API.</p>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Avatar pipeline (Midjourney)</p>
+        <p>The buddy's art direction is a Midjourney prompt built from the dad's own answers. The in-app SVG creature is the live stand-in.</p>
+        <button type="button" id="copy-mj">Copy Midjourney prompt</button>
+        <input id="mj-url" type="text" placeholder="Paste Midjourney image URL" autocomplete="off" />
+        <div class="stage-note__row">
+          <button type="button" id="apply-mj">Use as buddy</button>
+          <button type="button" id="clear-mj">Back to SVG</button>
+        </div>
+        <p class="stage-note__hint" id="mj-feedback"></p>
+      </div>
+    </aside>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
