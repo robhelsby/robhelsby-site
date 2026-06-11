@@ -245,23 +245,33 @@
       <path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v4"/>
     </svg>`;
 
+  const STOP_ICON = `
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/>
+    </svg>`;
+
+  // Set once mic trouble is seen this visit, so later inputs open in text mode.
+  let voiceTrouble = false;
+
   // Mounts a voice-first answer input into `mount`.
   // opts: { placeholder, submitLabel, maxLength, onSubmit(value), onSkip?, skipLabel? }
   function createAnswerInput(mount, opts) {
-    let mode = state.inputMode || (Speech.supported() ? "voice" : "text");
+    let mode = state.inputMode || (Speech.supported() && !voiceTrouble ? "voice" : "text");
     if (mode === "voice" && !Speech.supported()) mode = "text";
     let value = "";
     let interim = "";
     let rec = null;
     let listening = false;
     let notice = "";
+    let watchdog = null;
+    let gotSignal = false;
     const maxLen = opts.maxLength || 160;
 
     const $ = (sel) => mount.querySelector(sel);
 
     function html() {
       const skipBtn = opts.onSkip
-        ? `<button class="btn btn--quiet" data-act="skip">${esc(opts.skipLabel || "Skip this one")}</button>`
+        ? `<button type="button" class="btn btn--quiet" data-act="skip">${esc(opts.skipLabel || "Skip this one")}</button>`
         : "";
       if (mode === "voice") {
         return `
@@ -270,9 +280,9 @@
             <p class="voice-status" data-ref="status"></p>
             <p class="transcript is-empty" data-ref="transcript" aria-live="polite"></p>
             ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
-            <button class="btn btn--primary" data-act="submit" disabled>${esc(opts.submitLabel)}</button>
+            <button type="button" class="btn btn--primary" data-act="submit" disabled>${esc(opts.submitLabel)}</button>
             <div class="voice-box__alts">
-              <button class="btn btn--quiet" data-act="toggle">Rather type it?</button>
+              <button type="button" class="btn btn--ghost btn--compact" data-act="toggle">Rather type it?</button>
               ${skipBtn}
             </div>
           </div>`;
@@ -281,9 +291,9 @@
         <div class="answer-box">
           <textarea data-ref="ta" placeholder="${esc(opts.placeholder)}" maxlength="${maxLen}">${esc(value)}</textarea>
           ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
-          <button class="btn btn--primary" data-act="submit" ${value.trim() ? "" : "disabled"}>${esc(opts.submitLabel)}</button>
+          <button type="button" class="btn btn--primary" data-act="submit" ${value.trim() ? "" : "disabled"}>${esc(opts.submitLabel)}</button>
           <div class="voice-box__alts">
-            ${Speech.supported() ? `<button class="btn btn--quiet" data-act="toggle">Say it instead</button>` : ""}
+            ${Speech.supported() ? `<button type="button" class="btn btn--ghost btn--compact" data-act="toggle">Say it instead</button>` : ""}
             ${skipBtn}
           </div>
         </div>`;
@@ -296,80 +306,173 @@
       const submit = $("[data-act=submit]");
       const mic = $("[data-act=mic]");
       const text = (value + (interim ? " " + interim : "")).trim();
-      transcript.textContent = text;
-      transcript.classList.toggle("is-empty", !text);
-      if (listening) status.textContent = "Listening. Tap again when you're done.";
+      if (transcript) {
+        transcript.textContent = text;
+        transcript.classList.toggle("is-empty", !text);
+      }
+      if (listening) status.textContent = "Listening. Tap the square when you're done.";
       else if (value.trim()) status.textContent = "Tap the mic to add more, or send it.";
       else status.textContent = "Tap the mic and just say it.";
-      mic.classList.toggle("is-listening", listening);
-      submit.disabled = value.trim().length === 0;
+      if (mic) {
+        mic.classList.toggle("is-listening", listening);
+        mic.innerHTML = listening ? STOP_ICON : MIC_ICON;
+        mic.setAttribute("aria-label", listening ? "Stop listening" : "Tap to talk");
+      }
+      if (submit) submit.disabled = value.trim().length === 0;
     }
 
-    function startListening() {
-      rec = new Speech.Ctor();
-      rec.lang = "en-GB";
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.onresult = (ev) => {
-        interim = "";
-        for (let i = ev.resultIndex; i < ev.results.length; i++) {
-          const r = ev.results[i];
-          if (r.isFinal) value = (value + " " + r[0].transcript).trim().slice(0, maxLen);
-          else interim += r[0].transcript;
-        }
-        updateVoiceUI();
-      };
-      rec.onend = () => { listening = false; interim = ""; updateVoiceUI(); };
-      rec.onerror = (ev) => {
-        listening = false;
-        if (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture") {
-          notice = "Couldn't get to the mic — no drama, type it instead.";
-          mode = "text";
-          state.inputMode = "text";
-          save();
-          renderInput();
-        } else {
-          updateVoiceUI();
-        }
-      };
-      try { rec.start(); listening = true; } catch (e) { listening = false; }
-      updateVoiceUI();
+    function clearWatchdog() {
+      if (watchdog) { clearTimeout(watchdog); watchdog = null; }
     }
 
     function stopListening() {
-      if (rec) { try { rec.stop(); } catch (e) { /* already stopped */ } }
+      clearWatchdog();
       listening = false;
+      if (rec) {
+        try { rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) { /* already stopped */ }
+        rec = null;
+      }
     }
 
-    function wire() {
-      const submit = $("[data-act=submit]");
-      if (mode === "voice") {
-        $("[data-act=mic]").addEventListener("click", () => {
-          if (listening) { stopListening(); updateVoiceUI(); }
-          else startListening();
-        });
-        submit.addEventListener("click", () => { stopListening(); opts.onSubmit(value.trim()); });
+    // Fatal mic problem: keep whatever was transcribed and drop to text.
+    function failToText(message) {
+      stopListening();
+      voiceTrouble = true;
+      mode = "text";
+      state.inputMode = "text";
+      save();
+      notice = message;
+      renderInput();
+    }
+
+    function handleError(code) {
+      clearWatchdog();
+      listening = false;
+      interim = "";
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        failToText("Couldn't get permission for the mic — no drama, type it instead.");
+      } else if (code === "audio-capture" || code === "network") {
+        failToText("The mic's not playing ball on this device — type it for now.");
+      } else if (code === "no-speech") {
+        notice = "Didn't catch anything. Give it another go, or type it.";
+        renderInput();
+      } else if (code === "aborted") {
         updateVoiceUI();
       } else {
-        const ta = $("[data-ref=ta]");
-        ta.addEventListener("input", () => { value = ta.value; submit.disabled = value.trim().length === 0; });
-        submit.addEventListener("click", () => { opts.onSubmit(ta.value.trim()); });
-        ta.focus();
-      }
-      const toggle = $("[data-act=toggle]");
-      if (toggle) toggle.addEventListener("click", () => {
-        stopListening();
-        mode = mode === "voice" ? "text" : "voice";
-        state.inputMode = mode;
-        save();
-        notice = "";
+        notice = "That didn't take. One more go, or type it instead.";
         renderInput();
-      });
-      const skip = $("[data-act=skip]");
-      if (skip) skip.addEventListener("click", () => { stopListening(); opts.onSkip(); });
+      }
     }
 
-    function renderInput() { mount.innerHTML = html(); wire(); }
+    function startListening() {
+      notice = "";
+      gotSignal = false;
+      let r;
+      try {
+        r = new Speech.Ctor();
+        r.lang = "en-GB";
+        r.continuous = true;
+        r.interimResults = true;
+      } catch (e) {
+        failToText("Voice isn't available in this browser — typing it is.");
+        return;
+      }
+      r.onstart = () => { gotSignal = true; };
+      r.onaudiostart = () => { gotSignal = true; };
+      r.onresult = (ev) => {
+        gotSignal = true;
+        interim = "";
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const res = ev.results[i];
+          if (res.isFinal) value = (value + " " + res[0].transcript).trim().slice(0, maxLen);
+          else interim += res[0].transcript;
+        }
+        updateVoiceUI();
+      };
+      r.onend = () => {
+        clearWatchdog();
+        listening = false;
+        interim = "";
+        rec = null;
+        updateVoiceUI();
+      };
+      r.onerror = (ev) => handleError(ev && ev.error);
+      try {
+        r.start();
+        rec = r;
+        listening = true;
+      } catch (e) {
+        failToText("The mic wouldn't start here — type it instead.");
+        return;
+      }
+      // If nothing comes back at all (some in-app browsers and iOS setups
+      // fail silently), bail out to text rather than looking dead.
+      watchdog = setTimeout(() => {
+        if (!gotSignal) failToText("The mic's not picking anything up here — type it for now.");
+      }, 7000);
+      updateVoiceUI();
+    }
+
+    function doSubmit() {
+      if (mode === "text") {
+        const ta = $("[data-ref=ta]");
+        if (ta) value = ta.value;
+      }
+      const val = value.trim();
+      if (!val) return;
+      stopListening();
+      opts.onSubmit(val);
+    }
+
+    function switchMode() {
+      if (mode === "text") {
+        const ta = $("[data-ref=ta]");
+        if (ta) value = ta.value; // carry typed text into voice mode and back
+      }
+      stopListening();
+      mode = mode === "voice" ? "text" : "voice";
+      state.inputMode = mode;
+      save();
+      notice = "";
+      renderInput();
+    }
+
+    function wireTextarea() {
+      const ta = $("[data-ref=ta]");
+      const submit = $("[data-act=submit]");
+      if (!ta) return;
+      ta.addEventListener("input", () => {
+        value = ta.value;
+        if (submit) submit.disabled = value.trim().length === 0;
+      });
+      ta.focus();
+    }
+
+    function renderInput() {
+      mount.innerHTML = html();
+      if (mode === "voice") updateVoiceUI();
+      else wireTextarea();
+    }
+
+    // One delegated listener on the mount: buttons keep working no matter
+    // what state the recogniser is in — the exits can never be lost.
+    mount.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("[data-act]");
+      if (!btn || !mount.contains(btn)) return;
+      switch (btn.dataset.act) {
+        case "mic":
+          if (listening) { stopListening(); updateVoiceUI(); }
+          else startListening();
+          break;
+        case "submit": doSubmit(); break;
+        case "toggle": switchMode(); break;
+        case "skip":
+          stopListening();
+          if (opts.onSkip) opts.onSkip();
+          break;
+      }
+    });
+
     renderInput();
   }
 
@@ -1038,6 +1141,9 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         </div>
       </div>`;
 
+    // Wire the escape hatch before anything else so the screen can always be left
+    on("[data-act=cancel]", () => set({ checkin: null }));
+
     createAnswerInput(app.querySelector("#answer-mount"), {
       placeholder: isLost ? "e.g. a lie-in. A whole film. A clear head." : "e.g. patience you didn't know you had.",
       submitLabel: isLost ? "Next" : "Put it in the ledger",
@@ -1058,8 +1164,6 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         }
       },
     });
-
-    on("[data-act=cancel]", () => set({ checkin: null }));
   }
 
   /* ----------------------------------------------------------
