@@ -220,7 +220,7 @@
     if (!b) return "";
     if (b.imageUrl) {
       const cls = `buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}`;
-      return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your buddy" data-buddy />`;
+      return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your buddy" data-buddy draggable="false" />`;
     }
     return buddySVG(b.config, opts);
   }
@@ -253,6 +253,9 @@
   // Set once mic trouble is seen this visit, so later inputs open in text mode.
   let voiceTrouble = false;
 
+  // Spoken command that wipes the current entry: "let's reset" / "lets reset"
+  const RESET_COMMAND = /\blet'?s\s+reset\b/i;
+
   // Mounts a voice-first answer input into `mount`.
   // opts: { placeholder, submitLabel, maxLength, onSubmit(value), onSkip?, skipLabel? }
   function createAnswerInput(mount, opts) {
@@ -265,6 +268,8 @@
     let notice = "";
     let watchdog = null;
     let gotSignal = false;
+    let flash = "";
+    let flashTimer = null;
     const maxLen = opts.maxLength || 160;
 
     const $ = (sel) => mount.querySelector(sel);
@@ -278,7 +283,11 @@
           <div class="voice-box">
             <button type="button" class="mic-btn" data-act="mic" aria-label="Tap to talk">${MIC_ICON}</button>
             <p class="voice-status" data-ref="status"></p>
-            <p class="transcript is-empty" data-ref="transcript" aria-live="polite"></p>
+            <div class="transcript-wrap" data-ref="wrap">
+              <p class="transcript is-empty" data-ref="transcript" aria-live="polite"></p>
+              <button type="button" class="input-clear" data-act="clear" aria-label="Clear and start again">&times;</button>
+            </div>
+            <p class="micro voice-hint">Misheard? Tap &times; or say &ldquo;let's reset&rdquo; to wipe it and go again.</p>
             ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
             <button type="button" class="btn btn--primary" data-act="submit" disabled>${esc(opts.submitLabel)}</button>
             <div class="voice-box__alts">
@@ -289,7 +298,10 @@
       }
       return `
         <div class="answer-box">
-          <textarea data-ref="ta" placeholder="${esc(opts.placeholder)}" maxlength="${maxLen}">${esc(value)}</textarea>
+          <div class="transcript-wrap ${value.trim() ? "has-content" : ""}" data-ref="wrap">
+            <textarea data-ref="ta" placeholder="${esc(opts.placeholder)}" maxlength="${maxLen}">${esc(value)}</textarea>
+            <button type="button" class="input-clear" data-act="clear" aria-label="Clear and start again">&times;</button>
+          </div>
           ${notice ? `<p class="micro voice-notice">${esc(notice)}</p>` : ""}
           <button type="button" class="btn btn--primary" data-act="submit" ${value.trim() ? "" : "disabled"}>${esc(opts.submitLabel)}</button>
           <div class="voice-box__alts">
@@ -299,18 +311,27 @@
         </div>`;
     }
 
+    function flashStatus(msg) {
+      flash = msg;
+      if (flashTimer) clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => { flash = ""; updateVoiceUI(); }, 2200);
+    }
+
     function updateVoiceUI() {
       const status = $("[data-ref=status]");
       if (!status) return;
       const transcript = $("[data-ref=transcript]");
       const submit = $("[data-act=submit]");
       const mic = $("[data-act=mic]");
+      const wrap = $("[data-ref=wrap]");
       const text = (value + (interim ? " " + interim : "")).trim();
       if (transcript) {
         transcript.textContent = text;
         transcript.classList.toggle("is-empty", !text);
       }
-      if (listening) status.textContent = "Listening. Tap the square when you're done.";
+      if (wrap) wrap.classList.toggle("has-content", !!text);
+      if (flash) status.textContent = flash;
+      else if (listening) status.textContent = "Listening. Tap the square when you're done.";
       else if (value.trim()) status.textContent = "Tap the mic to add more, or send it.";
       else status.textContent = "Tap the mic and just say it.";
       if (mic) {
@@ -382,10 +403,21 @@
       r.onresult = (ev) => {
         gotSignal = true;
         interim = "";
+        let resetHeard = false;
         for (let i = ev.resultIndex; i < ev.results.length; i++) {
           const res = ev.results[i];
-          if (res.isFinal) value = (value + " " + res[0].transcript).trim().slice(0, maxLen);
-          else interim += res[0].transcript;
+          if (res.isFinal) {
+            const chunk = res[0].transcript;
+            if (RESET_COMMAND.test(chunk)) resetHeard = true;
+            else value = (value + " " + chunk).trim().slice(0, maxLen);
+          } else {
+            interim += res[0].transcript;
+          }
+        }
+        if (resetHeard) {
+          value = "";
+          interim = "";
+          flashStatus("Cleared, chief. Off you go again.");
         }
         updateVoiceUI();
       };
@@ -437,13 +469,31 @@
       renderInput();
     }
 
+    function clearEntry() {
+      value = "";
+      interim = "";
+      if (mode === "text") {
+        const ta = $("[data-ref=ta]");
+        const submit = $("[data-act=submit]");
+        const wrap = $("[data-ref=wrap]");
+        if (ta) { ta.value = ""; ta.focus(); }
+        if (submit) submit.disabled = true;
+        if (wrap) wrap.classList.remove("has-content");
+      } else {
+        flashStatus("Cleared, chief. Off you go again.");
+        updateVoiceUI();
+      }
+    }
+
     function wireTextarea() {
       const ta = $("[data-ref=ta]");
       const submit = $("[data-act=submit]");
+      const wrap = $("[data-ref=wrap]");
       if (!ta) return;
       ta.addEventListener("input", () => {
         value = ta.value;
         if (submit) submit.disabled = value.trim().length === 0;
+        if (wrap) wrap.classList.toggle("has-content", value.trim().length > 0);
       });
       ta.focus();
     }
@@ -466,6 +516,7 @@
           break;
         case "submit": doSubmit(); break;
         case "toggle": switchMode(); break;
+        case "clear": clearEntry(); break;
         case "skip":
           stopListening();
           if (opts.onSkip) opts.onSkip();
@@ -723,6 +774,26 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     "It did a little wobble. For you.",
     "It's pretending it didn't like that. It did.",
     "It doesn't need anything. It's just glad you came.",
+  ];
+
+  const GRAB_LINES = [
+    "Oi. Mind the scruff.",
+    "Picked up like a kitten. It permits this.",
+    "It's dangling. It's fine. Probably.",
+    "Careful — it's mostly sprouts up there.",
+  ];
+
+  const DROP_LINES = [
+    "Landed. Dignity mostly intact.",
+    "It bounced. It liked that, and will deny it.",
+    "Down safe. It's pretending that never happened.",
+    "Solid landing. It gives it a seven.",
+  ];
+
+  const SPIN_LINES = [
+    "A spin. Bold.",
+    "Whee. It said nothing of the sort.",
+    "It's seeing sprouts. Give it a second.",
   ];
 
   function observeLines() {
@@ -1012,7 +1083,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     on("[data-act=checkin]", () => set({ checkin: { step: "lost", lost: "" } }));
     on("[data-act=visit]", () => set({ tab: "buddy" }));
     on("[data-act=reset-inline]", resetPrototype);
-    wireBuddyPoke();
+    wireBuddyInteractions();
     maybeGenerateInsight();
   }
 
@@ -1070,30 +1141,105 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         <h2 class="home-greeting" style="text-align:center">${name}</h2>
         <p class="micro">Observe, or interact. Both count. It doesn't need you — it just notices when you're there.</p>
         <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px">
-          <div class="buddy-stage">${buddyVisual()}</div>
+          <div class="buddy-stage"><div class="buddy-holder" data-holder>${buddyVisual()}</div></div>
           <p class="buddy-line" id="buddy-line">${esc(obs)}</p>
         </div>
         <div class="screen-footer" style="align-items:center">
-          <p class="micro">Give it a poke. Low stakes. No objectives.</p>
+          <p class="micro">Poke it. Double-tap for a spin. Pick it up by the scruff and dangle it about. No objectives.</p>
           <button class="btn btn--quiet" data-act="reset-inline">Prototype v0.1 · start again</button>
         </div>
       </div>`;
   }
 
-  function wireBuddyPoke() {
+  // Oddballz-style handling: tap to poke, double-tap to spin, press-and-drag
+  // to pick it up by the scruff and dangle it. It sways as you move, then
+  // drops back with a bounce. Only the big buddy (inside [data-holder]) is
+  // grabbable — the small one on Today just opens the buddy tab.
+  function wireBuddyInteractions() {
     const svg = app.querySelector("[data-buddy]");
-    if (!svg) return;
+    const holder = app.querySelector("[data-holder]");
+    if (!svg || !holder) return;
+
     let pokes = 0;
-    svg.addEventListener("click", () => {
+    const react = (pool, n) => {
+      const line = app.querySelector("#buddy-line");
+      if (line) line.textContent = pick(pool, n);
+    };
+
+    const poke = () => {
       svg.classList.remove("is-poked");
       void svg.getBoundingClientRect(); // restart animation
       svg.classList.add("is-poked");
-      const line = app.querySelector("#buddy-line");
-      if (line) {
-        pokes++;
-        line.textContent = pick(POKE_LINES, pokes + new Date().getMinutes());
+      pokes++;
+      react(POKE_LINES, pokes + new Date().getMinutes());
+    };
+
+    const spin = () => {
+      svg.classList.remove("is-poked");
+      svg.classList.add("is-spinning");
+      svg.addEventListener("animationend", () => svg.classList.remove("is-spinning"), { once: true });
+      react(SPIN_LINES, Date.now());
+    };
+
+    let pointerId = null;
+    let startX = 0, startY = 0, lastX = 0;
+    let sway = 0;
+    let dragging = false;
+    let lastTap = 0;
+
+    svg.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      pointerId = e.pointerId;
+      try { svg.setPointerCapture(pointerId); } catch (err) { /* not supported */ }
+      startX = e.clientX;
+      startY = e.clientY;
+      lastX = e.clientX;
+      dragging = false;
+      sway = 0;
+    });
+
+    svg.addEventListener("pointermove", (e) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (!dragging && Math.hypot(dx, dy) > 10) {
+        dragging = true;
+        svg.classList.add("is-grabbed");
+        holder.classList.add("is-held");
+        react(GRAB_LINES, Date.now());
+      }
+      if (dragging) {
+        // dangle physics: it swings with the horizontal motion, then settles
+        sway = Math.max(-22, Math.min(22, sway * 0.82 + (e.clientX - lastX) * 1.4));
+        lastX = e.clientX;
+        holder.style.transform = `translate(${dx}px, ${dy}px) rotate(${sway.toFixed(1)}deg)`;
       }
     });
+
+    const release = (e) => {
+      if (pointerId === null || (e.pointerId !== undefined && e.pointerId !== pointerId)) return;
+      pointerId = null;
+      if (dragging) {
+        dragging = false;
+        svg.classList.remove("is-grabbed");
+        holder.classList.remove("is-held");
+        holder.classList.add("is-dropping");
+        holder.style.transform = "";
+        setTimeout(() => holder.classList.remove("is-dropping"), 650);
+        react(DROP_LINES, Date.now());
+      } else {
+        const now = Date.now();
+        if (now - lastTap < 350) {
+          lastTap = 0;
+          spin();
+        } else {
+          lastTap = now;
+          poke();
+        }
+      }
+    };
+    svg.addEventListener("pointerup", release);
+    svg.addEventListener("pointercancel", release);
   }
 
   /* ---------- Daily check-in flow ---------- */

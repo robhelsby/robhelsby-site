@@ -402,6 +402,36 @@ h1.display {
   min-height: 18px;
 }
 
+.transcript-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.transcript-wrap .transcript,
+.transcript-wrap textarea { padding-right: 46px; }
+
+.input-clear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-raise-2);
+  color: var(--ink-dim);
+  font: 500 16px/1 var(--font-body);
+  padding: 0;
+  cursor: pointer;
+  display: none;
+  place-items: center;
+}
+
+.input-clear:hover { color: var(--ink); border-color: var(--ink-faint); }
+.transcript-wrap.has-content .input-clear { display: grid; }
+
+.voice-hint { text-align: center; }
+
 .transcript {
   width: 100%;
   min-height: 56px;
@@ -484,6 +514,40 @@ img.buddy-svg {
   border-radius: 42%;
   object-fit: cover;
   background: var(--bg-raise);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ---------- Buddy handling: grab, dangle, drop, spin ---------- */
+
+.buddy-holder {
+  display: inline-block;
+  touch-action: none;
+  cursor: grab;
+}
+
+.buddy-holder.is-held { cursor: grabbing; }
+
+.buddy-holder.is-dropping {
+  transition: transform 0.55s cubic-bezier(0.3, 1.8, 0.4, 1);
+}
+
+/* held by the scruff: float pauses, body stretches from the top */
+.buddy-svg.is-grabbed {
+  animation: none;
+  transform: scale(0.9, 1.12);
+  transform-origin: 50% 18%;
+  transition: transform 0.18s ease;
+}
+
+.buddy-svg.is-spinning {
+  animation: buddy-spin 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+@keyframes buddy-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 /* Line swapped in live by the LLM voice */

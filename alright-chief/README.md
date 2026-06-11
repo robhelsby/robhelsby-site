@@ -34,7 +34,10 @@ Mapped to the product shape in the workshop brief:
    Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
 5. **Observe / interact.** The buddy has its own quiet life doing lost-column things
-   vicariously; poke it for small, low-stakes reactions.
+   vicariously. Interactions are Oddballz-style — small, strange, low-stakes: tap to
+   poke it, double-tap to spin it, and press-and-drag to pick it up by the scruff —
+   it dangles and sways with your movement, then drops back with a bounce. Each
+   handling gets its own deadpan reaction line.
 6. **Insights.** After a few entries the app starts reflecting the ledger back —
    "a mirror, not a notification."
 7. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
@@ -45,6 +48,8 @@ The lost/gained check-in and the personal onboarding questions default to a **ta
 voice interface** built on the browser's Web Speech API (`SpeechRecognition`, `en-GB`):
 
 - Tap the mic, say it, watch the live transcript land; tap again to stop, add more, or send.
+- **Editing a misheard entry:** an &times; button on the transcript (and the text field)
+  wipes it, or just say **"let's reset"** and the entry clears verbally.
 - **"Rather type it?"** switches to the text input (and **"Say it instead"** switches back) —
   text is a fully considered fallback, not a consolation prize. The last-used mode is
   remembered.
