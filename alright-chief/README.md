@@ -27,17 +27,22 @@ Mapped to the product shape in the workshop brief:
    (baby's age, first/second, who's at home), then the pivot to three genuinely personal
    questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
    text fallback (see below).
-2. **Character generation — the buddy.** A generative, non-human creature seeded from the
-   dad's own answers (procedural SVG: body shape, palette, eyes, sprouts all vary). Named by
+2. **Character generation — the chief.** A generative mascot drawn to the house reference:
+   bean-shaped matte-black body, big white oval eyes, purple mitten hands, stubby legs in
+   chunky shoes, always in a hat. The silhouette is fixed; variation lives in height,
+   roundness, hat style (bucket / beanie / flat cap / sun hat) and clothing theme. Named by
    the user; "spin up another" re-rolls.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
    Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
-5. **Observe / interact.** The buddy has its own quiet life doing lost-column things
-   vicariously. Interactions are Oddballz-style — small, strange, low-stakes: tap to
-   poke it, double-tap to spin it, and press-and-drag to pick it up by the scruff —
-   it dangles and sways with your movement, then drops back with a bounce. Each
-   handling gets its own deadpan reaction line.
+5. **Observe / interact.** The chief listens to everything the dad tells the app —
+   onboarding answers and both ledger columns — and learns activities from it (gym,
+   five-a-side, the bike, vinyl, a quiet pint, films, gaming, reading, fishing, coffee,
+   golf, cooking, running). When you visit he's usually mid-something: one of *your*
+   activities with its prop, or a generic idle — standing about bored, asleep on his
+   feet, whistling. **Tap him to snap him out of it** (startled "!", deadpan line),
+   then interactions are Oddballz-style: tap to poke, double-tap to spin, press-and-drag
+   to pick him up by the scruff — he dangles and sways, then drops back with a bounce.
 6. **Insights.** After a few entries the app starts reflecting the ledger back —
    "a mirror, not a notification."
 7. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
@@ -78,9 +83,9 @@ this goes through a thin backend so the key never ships to the client.
 
 Midjourney has no public API, so the pipeline is structured as:
 
-1. The app **composes a bespoke Midjourney prompt** from the dad's onboarding answers —
-   fixed art direction (non-human, fantastical, plucky charm, no race/body/age baggage,
-   warm charcoal + amber world) with the personal material varying per dad.
+1. The app **composes a bespoke Midjourney prompt** in the house character style —
+   bean-shaped matte-black mascot, white oval eyes, purple mitten hands, his generated
+   hat and theme — caught doing an activity learned from the dad's own answers.
    *Copy it from the side panel.*
 2. The prompt is rendered in Midjourney (design partner / batch job in production).
 3. The resulting image is **plugged back in as the buddy** — paste the image URL in the

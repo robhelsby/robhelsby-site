@@ -550,6 +550,45 @@ img.buddy-svg {
   100% { transform: rotate(360deg) scale(1); }
 }
 
+/* ---------- Chief details: blink, z's, whistle notes, snap-out ---------- */
+
+.chief-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chief-blink 5.2s infinite;
+}
+
+@keyframes chief-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95%, 97% { transform: scaleY(0.08); }
+}
+
+.chief-float {
+  transform-box: fill-box;
+  opacity: 0;
+  animation: chief-float-up 2.6s ease-in-out infinite;
+}
+
+.chief-float.f2 { animation-delay: 0.85s; }
+.chief-float.f3 { animation-delay: 1.7s; }
+
+@keyframes chief-float-up {
+  0%   { opacity: 0; transform: translate(0, 0); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(7px, -16px); }
+}
+
+.chief-snap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chief-snap-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes chief-snap-pop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
 /* Line swapped in live by the LLM voice */
 .llm-swap { animation: screen-in 0.4s ease both; }
 

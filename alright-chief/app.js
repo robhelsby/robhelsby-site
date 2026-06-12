@@ -29,12 +29,21 @@
     inputMode: null,           // 'voice' | 'text' — user's last-used input mode; voice is the default
   });
 
-  let state = load();
+  // Declared here, initialised at the bottom of the module — load() can run a
+  // config migration that needs the const tables defined further down.
+  let state;
 
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+      if (raw) {
+        const s = Object.assign(defaultState(), JSON.parse(raw));
+        // Older saves used the abstract-blob buddy; rebuild him as a chief from the same seed.
+        if (s.buddy && s.buddy.config && !s.buddy.config.chief) {
+          s.buddy.config = genBuddyConfig(s.buddy.config.seed || "chief-" + Date.now());
+        }
+        return s;
+      }
     } catch (e) { /* fresh start */ }
     return defaultState();
   }
@@ -100,129 +109,292 @@
     };
   }
 
-  const PALETTES = [
-    { a: "#8fae5f", b: "#55703a", glow: "#cfe39a" },   // moss
-    { a: "#d98e5f", b: "#9c5532", glow: "#f5c9a4" },   // clay
-    { a: "#8d7fc9", b: "#564a8e", glow: "#cfc6f0" },   // dusk
-    { a: "#6fb3ae", b: "#3a6f6b", glow: "#b8e3df" },   // rockpool
-    { a: "#c97f96", b: "#8a4a60", glow: "#efc1d0" },   // rhubarb
-    { a: "#b8a14f", b: "#7a682c", glow: "#e8d99a" },   // gorse
+  /* ----------------------------------------------------------
+     The chief — generative mascot, drawn to the reference sheet:
+     a small bean-shaped fella, matte black body, big plain white
+     oval eyes, purple mitten hands, stubby legs in chunky shoes,
+     always in a hat. Variation lives in height, roundness, hat
+     style and clothing theme; the silhouette never changes.
+     ---------------------------------------------------------- */
+
+  const THEMES = [
+    { name: "olive",   hat: "#6f7d44", band: "#49542e", accent: "#c9a04a" },
+    { name: "stone",   hat: "#8a8f98", band: "#5d626b", accent: "#b05a3c" },
+    { name: "tan",     hat: "#c4a878", band: "#8a6d4f", accent: "#5d7286" },
+    { name: "slate",   hat: "#5d7286", band: "#41525f", accent: "#c9a04a" },
+    { name: "plum",    hat: "#7a5a8a", band: "#564063", accent: "#6f7d44" },
+    { name: "rust",    hat: "#b05a3c", band: "#7e3f29", accent: "#5d7286" },
   ];
+
+  const HAT_NAMES = ["bucket hat", "beanie", "flat cap", "wide-brim sun hat"];
+
+  const INK = {
+    body: "#211d27",    // matte black, a touch of plum so it reads on the dark bg
+    line: "#0a0810",
+    rim: "#4a4356",
+    eye: "#f4efe6",
+    hand: "#8d63b8",
+    handLine: "#5d3f7e",
+    shoe: "#2e2937",
+    sole: "#56505f",
+  };
 
   function genBuddyConfig(seedStr) {
     const rand = mulberry32(hashString(seedStr));
-    const n = 8;
-    const pts = [];
-    for (let i = 0; i < n; i++) {
-      const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
-      const r = 58 * (0.78 + rand() * 0.5);
-      pts.push({ x: 100 + Math.cos(ang) * r, y: 104 + Math.sin(ang) * r * 0.95 });
-    }
-    const eyeCount = rand() < 0.18 ? 1 : rand() < 0.85 ? 2 : 3;
-    const eyes = [];
-    const eyeR = 8 + rand() * 5;
-    if (eyeCount === 1) {
-      eyes.push({ x: 100, y: 86 + rand() * 10, r: eyeR + 3 });
-    } else {
-      const spread = 16 + rand() * 12;
-      const ey = 84 + rand() * 12;
-      eyes.push({ x: 100 - spread, y: ey, r: eyeR });
-      eyes.push({ x: 100 + spread, y: ey, r: eyeR });
-      if (eyeCount === 3) eyes.push({ x: 100, y: ey - 18, r: eyeR * 0.6 });
-    }
-    const sprouts = [];
-    const sproutCount = 1 + Math.floor(rand() * 3);
-    for (let i = 0; i < sproutCount; i++) {
-      sprouts.push({
-        x: 78 + rand() * 44,
-        len: 16 + rand() * 18,
-        sway: rand() * 10 - 5,
-        tip: 3 + rand() * 3,
-      });
-    }
-    const spots = [];
-    const spotCount = 2 + Math.floor(rand() * 3);
-    for (let i = 0; i < spotCount; i++) {
-      spots.push({ x: 60 + rand() * 80, y: 110 + rand() * 40, r: 4 + rand() * 9 });
-    }
     return {
+      chief: true,
       seed: seedStr,
-      palette: Math.floor(rand() * PALETTES.length),
-      pts,
-      eyes,
-      sprouts,
-      spots,
-      mouth: { y: (eyes[0] ? eyes[0].y : 90) + 22 + rand() * 8, w: 8 + rand() * 12, smile: rand() > 0.25 },
+      h: 0.85 + rand() * 0.3,       // height
+      w: 0.85 + rand() * 0.3,       // roundness
+      eye: 0.85 + rand() * 0.35,    // eye size
+      legLen: 0.8 + rand() * 0.55,  // leg length
+      tilt: rand() * 8 - 4,         // eye tilt, a bit of attitude
+      hat: Math.floor(rand() * 4),  // bucket | beanie | flat cap | sun hat
+      theme: Math.floor(rand() * THEMES.length),
     };
   }
 
-  function smoothClosedPath(pts) {
-    const n = pts.length;
-    let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} `;
-    for (let i = 0; i < n; i++) {
-      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
-      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
-      d += `C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} `;
-    }
-    return d + "Z";
+  /* ---------- Activity props (drawn anchored at bottom-centre, origin = ground) ---------- */
+
+  const PROPS = {
+    dumbbell: () => `
+      <rect x="-21" y="-12" width="42" height="5" rx="2.5" fill="#777e88" stroke="${INK.line}" stroke-width="2.5"/>
+      <circle cx="-19" cy="-9.5" r="9" fill="#3a3f47" stroke="${INK.line}" stroke-width="2.5"/>
+      <circle cx="19" cy="-9.5" r="9" fill="#3a3f47" stroke="${INK.line}" stroke-width="2.5"/>`,
+    football: () => `
+      <circle cx="0" cy="-9" r="9" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5"/>
+      <path d="M 0 -12 l 3.4 2.4 -1.3 4 -4.2 0 -1.3 -4 Z" fill="#262229"/>`,
+    bike: () => `
+      <circle cx="-15" cy="-10" r="10" fill="none" stroke="#9a93a6" stroke-width="2.6"/>
+      <circle cx="15" cy="-10" r="10" fill="none" stroke="#9a93a6" stroke-width="2.6"/>
+      <path d="M -15 -10 L -6 -24 L 8 -24 L 15 -10 L 0 -10 L -6 -24 M 0 -10 L -15 -10" fill="none" stroke="#b05a3c" stroke-width="2.6" stroke-linejoin="round"/>
+      <path d="M -8 -27 h 5 M 8 -24 l 3 -4 h 3" stroke="${INK.line}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    vinyl: () => `
+      <rect x="-18" y="-13" width="36" height="13" rx="2" fill="#4a4453" stroke="${INK.line}" stroke-width="2.5"/>
+      <circle cx="-4" cy="-6.5" r="5.5" fill="#16131b" stroke="${INK.line}" stroke-width="2"/>
+      <circle cx="-4" cy="-6.5" r="1.6" fill="#c9a04a"/>
+      <path d="M 10 -10 l 4 5" stroke="#cfc8bb" stroke-width="2" stroke-linecap="round"/>`,
+    pint: () => `
+      <path d="M -7 -20 L -5 0 L 5 0 L 7 -20 Z" fill="#c9802f" stroke="${INK.line}" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="-8" y="-25" width="16" height="6" rx="3" fill="#f0ead9" stroke="${INK.line}" stroke-width="2.5"/>`,
+    tv: () => `
+      <path d="M -8 0 l -3 4 M 8 0 l 3 4" stroke="${INK.line}" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="-17" y="-24" width="34" height="24" rx="3" fill="#3a3540" stroke="${INK.line}" stroke-width="2.5"/>
+      <rect x="-13" y="-20" width="26" height="14" rx="1.5" fill="#7fb3ae"/>
+      <path d="M -4 -24 l -5 -7 M 4 -24 l 5 -7" stroke="${INK.line}" stroke-width="2" stroke-linecap="round"/>`,
+    controller: () => `
+      <rect x="-15" y="-13" width="30" height="13" rx="6.5" fill="#4a4453" stroke="${INK.line}" stroke-width="2.5"/>
+      <circle cx="7" cy="-8.5" r="2" fill="#c9a04a"/>
+      <circle cx="10.5" cy="-5.5" r="2" fill="#b05a3c"/>
+      <path d="M -10 -6.5 h 6 M -7 -9.5 v 6" stroke="#9a93a6" stroke-width="2" stroke-linecap="round"/>`,
+    book: () => `
+      <path d="M -14 -6 Q -7 -12 0 -7 Q 7 -12 14 -6 L 14 -1 Q 7 -6 0 -1 Q -7 -6 -14 -1 Z" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M 0 -7 L 0 -1" stroke="${INK.line}" stroke-width="1.6"/>`,
+    fishing: () => `
+      <ellipse cx="8" cy="0" rx="16" ry="3.5" fill="#5d7286" opacity="0.5"/>
+      <path d="M -18 -2 L 12 -34" stroke="#8a6d4f" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M 12 -34 q 5 16 -2 28" stroke="#cfc8bb" stroke-width="1.5" fill="none"/>
+      <circle cx="10" cy="-6" r="2.2" fill="#b05a3c"/>`,
+    coffee: () => `
+      <rect x="-8" y="-13" width="16" height="13" rx="2" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5"/>
+      <path d="M 8 -10 q 7 2.5 0 6" stroke="${INK.line}" stroke-width="2.5" fill="none"/>
+      <path d="M -3 -17 q 2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f2"/>
+      <path d="M 3 -17 q -2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f3"/>`,
+    golf: () => `
+      <path d="M 8 -32 V 0" stroke="#8a8f98" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 8 -32 l 12 4.5 -12 4.5 Z" fill="#b05a3c" stroke="${INK.line}" stroke-width="2"/>
+      <circle cx="-9" cy="-3" r="3" fill="#ece6da" stroke="${INK.line}" stroke-width="2"/>`,
+    pan: () => `
+      <ellipse cx="-3" cy="-5" rx="13" ry="5" fill="#3a3540" stroke="${INK.line}" stroke-width="2.5"/>
+      <path d="M 10 -6 L 21 -9" stroke="#3a3540" stroke-width="4" stroke-linecap="round"/>
+      <path d="M -7 -12 q 2 -3 0 -6 M 1 -12 q 2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f2"/>`,
+    trainers: () => `
+      <path d="M -16 0 L -16 -5 Q -8 -8 -2 -4 L 4 -1 Q 5 0 3 0 Z" fill="#ece6da" stroke="${INK.line}" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M 2 0 L 2 -5 Q 10 -8 16 -4 L 21 -1 Q 22 0 20 0 Z" fill="#b05a3c" stroke="${INK.line}" stroke-width="2.2" stroke-linejoin="round"/>`,
+  };
+
+  /* ---------- Activities the chief can learn from what the dad tells the app ---------- */
+
+  const ACTIVITIES = [
+    { id: "gym", prop: "dumbbell", doing: "mid gym-session", quip: "Uninterrupted, and all. Your gym session, technically.",
+      keywords: ["gym", "weights", "workout", "lifting", "deadlift", "crossfit"] },
+    { id: "football", prop: "football", doing: "having a kickabout", quip: "First touch needs work. So did yours.",
+      keywords: ["football", "five-a-side", "five a side", "footy", "kickabout", "match"] },
+    { id: "cycling", prop: "bike", doing: "out on the bike", quip: "Your long route. No punctures yet.",
+      keywords: ["bike", "cycling", "cycle", "ride", "riding"] },
+    { id: "music", prop: "vinyl", doing: "deep in the records", quip: "Filed exactly how you left them.",
+      keywords: ["music", "gig", "gigs", "record", "records", "vinyl", "band", "guitar", "dj"] },
+    { id: "pint", prop: "pint", doing: "having a quiet pint", quip: "He got you one in. It's going flat.",
+      keywords: ["pub", "pint", "beer", "brewery", "ale", "lads"] },
+    { id: "film", prop: "tv", doing: "finishing a film in one sitting", quip: "Start to finish. He'll spoil the ending.",
+      keywords: ["film", "movie", "cinema", "tv", "telly", "series", "netflix"] },
+    { id: "gaming", prop: "controller", doing: "getting a few rounds in", quip: "Your save file's safe with him.",
+      keywords: ["gaming", "video game", "playstation", "xbox", "console", "games"] },
+    { id: "reading", prop: "book", doing: "more than two pages deep", quip: "He's past the bit where you fell asleep.",
+      keywords: ["reading", "read a book", "book", "books", "novel"] },
+    { id: "fishing", prop: "fishing", doing: "down at the water", quip: "Nothing's biting. He doesn't mind.",
+      keywords: ["fishing", "fish"] },
+    { id: "coffee", prop: "coffee", doing: "on a proper coffee", quip: "Drinking it while it's hot. Imagine.",
+      keywords: ["coffee", "espresso", "flat white", "barista"] },
+    { id: "golf", prop: "golf", doing: "on the back nine", quip: "Still playing off your handicap.",
+      keywords: ["golf"] },
+    { id: "cooking", prop: "pan", doing: "cooking something slow", quip: "Nobody's grabbing his leg.",
+      keywords: ["cooking", "cook", "baking", "kitchen", "bbq", "barbecue"] },
+    { id: "running", prop: "trainers", doing: "out on a run", quip: "Your pace. Uphill. Showing off.",
+      keywords: ["running", "run", "parkrun", "jog", "jogging", "marathon"] },
+  ];
+
+  // Everything the dad has told the app — onboarding plus both ledger columns —
+  // fuels what the chief gets up to.
+  function learnedActivities() {
+    const p = state.profile || {};
+    const sources = [p.saturday, p.miss, p.love]
+      .concat(state.entries.flatMap((e) => [e.lost, e.gained]))
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return ACTIVITIES.filter((a) =>
+      a.keywords.some((k) => new RegExp(`\\b${k.replace(/[-\s]/g, "[-\\s]")}\\b`).test(sources)));
   }
 
-  function buddySVG(config, { small = false, reveal = false } = {}) {
-    const pal = PALETTES[config.palette];
-    const body = smoothClosedPath(config.pts);
-    const uid = "b" + (hashString(config.seed) % 99999);
+  /* ---------- Drawing the chief ---------- */
 
-    const sprouts = config.sprouts.map((s) => {
-      const topY = 104 - 60;
-      return `
-        <path d="M ${s.x} ${topY + 14} Q ${s.x + s.sway} ${topY - s.len / 2} ${s.x + s.sway * 1.6} ${topY - s.len}"
-              fill="none" stroke="${pal.b}" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="${s.x + s.sway * 1.6}" cy="${topY - s.len}" r="${s.tip}" fill="${pal.glow}"/>`;
-    }).join("");
+  function chiefSVG(config, scene = { pose: "attentive" }, { small = false, reveal = false } = {}) {
+    const t = THEMES[config.theme % THEMES.length];
+    const pose = scene.pose || "attentive";
+    const isActivity = pose === "activity" && scene.activity;
 
-    const spots = config.spots.map((s) =>
-      `<circle cx="${s.x}" cy="${s.y}" r="${s.r}" fill="${pal.glow}" opacity="0.22"/>`).join("");
+    const cx = isActivity ? 76 : 100;
+    const cy = 98;
+    const rx = 40 * config.w;
+    const ry = 50 * config.h;
+    const top = cy - ry;
+    const bottom = cy + ry;
+    const legLen = 12 * config.legLen;
+    const footY = bottom + legLen;
+    const groundY = footY + 6;
+    const o = `stroke="${INK.line}" stroke-width="3"`;
 
-    const eyes = config.eyes.map((e) => `
-      <g class="buddy-eye">
-        <circle cx="${e.x}" cy="${e.y}" r="${e.r}" fill="#f7f3ea"/>
-        <circle cx="${e.x}" cy="${e.y}" r="${(e.r * 0.45).toFixed(1)}" fill="#231d15"/>
-        <circle cx="${(e.x + e.r * 0.18).toFixed(1)}" cy="${(e.y - e.r * 0.2).toFixed(1)}" r="${(e.r * 0.14).toFixed(1)}" fill="#fff"/>
-      </g>`).join("");
+    /* legs + shoes */
+    const legDX = rx * 0.38;
+    const legs = [-1, 1].map((s) => `
+      <path d="M ${cx + s * legDX} ${bottom - 6} V ${footY - 3}" stroke="${INK.body}" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="${cx + s * legDX + s * 3}" cy="${footY}" rx="10" ry="5.5" fill="${INK.shoe}" ${o}/>
+      <path d="M ${cx + s * legDX - 7 + s * 3} ${footY + 2.5} h 14" stroke="${INK.sole}" stroke-width="2"/>`).join("");
 
-    const m = config.mouth;
-    const mouth = m.smile
-      ? `<path d="M ${100 - m.w} ${m.y} Q 100 ${m.y + 9} ${100 + m.w} ${m.y}" fill="none" stroke="#231d15" stroke-width="2.6" stroke-linecap="round"/>`
-      : `<circle cx="100" cy="${m.y + 2}" r="4" fill="#231d15"/>`;
+    /* body */
+    const body = `
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${INK.body}" ${o}/>
+      <path d="M ${cx - rx * 0.55} ${cy - ry * 0.62} Q ${cx - rx * 0.85} ${cy - ry * 0.18} ${cx - rx * 0.62} ${cy + ry * 0.35}"
+            fill="none" stroke="${INK.rim}" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>`;
+
+    /* eyes */
+    const eyeY = cy - ry * 0.26;
+    const eyeDX = rx * 0.42;
+    const eyeRX = 8.5 * config.eye;
+    const eyeRY = 12 * config.eye;
+    let eyes = "";
+    if (pose === "sleep") {
+      eyes = [-1, 1].map((s) => `
+        <path d="M ${cx + s * eyeDX - eyeRX} ${eyeY} q ${eyeRX} ${eyeRY * 0.65} ${eyeRX * 2} 0"
+              stroke="${INK.eye}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`).join("");
+    } else {
+      const lidH = pose === "bored" ? eyeRY * 0.9 : 0;
+      eyes = [-1, 1].map((s) => `
+        <g class="${pose === "bored" ? "" : "chief-eye"}" transform="rotate(${(config.tilt * s).toFixed(1)} ${cx + s * eyeDX} ${eyeY})">
+          <ellipse cx="${cx + s * eyeDX}" cy="${eyeY}" rx="${eyeRX.toFixed(1)}" ry="${eyeRY.toFixed(1)}" fill="${INK.eye}"/>
+          ${lidH ? `<path d="M ${cx + s * eyeDX - eyeRX - 1} ${eyeY - eyeRY - 1} h ${eyeRX * 2 + 2} v ${lidH} h ${-(eyeRX * 2 + 2)} Z" fill="${INK.body}"/>` : ""}
+        </g>`).join("");
+    }
+
+    /* hands — purple mittens; crossed when idling, raised toward the prop when busy */
+    const handR = 9.5;
+    let hands = "";
+    if (pose === "bored" || pose === "sleep") {
+      hands = `
+        <ellipse cx="${cx - 8}" cy="${cy + ry * 0.34}" rx="${handR + 2}" ry="${handR - 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>
+        <ellipse cx="${cx + 9}" cy="${cy + ry * 0.3}" rx="${handR + 2}" ry="${handR - 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`;
+    } else if (isActivity) {
+      hands = `
+        <ellipse cx="${cx - rx - 4}" cy="${cy + ry * 0.22}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>
+        <ellipse cx="${cx + rx + 7}" cy="${cy - ry * 0.12}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`;
+    } else {
+      hands = [-1, 1].map((s) => `
+        <ellipse cx="${cx + s * (rx + 4)}" cy="${cy + ry * 0.22}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`).join("");
+    }
+
+    /* hat */
+    const hy = top + 7;
+    let hat = "";
+    switch (config.hat % 4) {
+      case 0: /* bucket */
+        hat = `
+          <path d="M ${cx - 21} ${hy} L ${cx - 15} ${hy - 19} Q ${cx} ${hy - 26} ${cx + 15} ${hy - 19} L ${cx + 21} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
+          <path d="M ${cx - 16} ${hy - 7} h 32" stroke="${t.band}" stroke-width="4"/>
+          <ellipse cx="${cx}" cy="${hy}" rx="29" ry="6.5" fill="${t.hat}" ${o}/>`;
+        break;
+      case 1: /* beanie */
+        hat = `
+          <circle cx="${cx}" cy="${hy - 22}" r="4.5" fill="${t.band}" ${o}/>
+          <path d="M ${cx - 23} ${hy} Q ${cx} ${hy - 42} ${cx + 23} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
+          <rect x="${cx - 24}" y="${hy - 6}" width="48" height="9" rx="4.5" fill="${t.band}" ${o}/>`;
+        break;
+      case 2: /* flat cap */
+        hat = `
+          <path d="M ${cx - 22} ${hy} Q ${cx - 18} ${hy - 18} ${cx + 2} ${hy - 17} Q ${cx + 20} ${hy - 16} ${cx + 22} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
+          <path d="M ${cx + 10} ${hy} q 14 -3 20 1 q -8 4 -20 2 Z" fill="${t.band}" ${o} stroke-linejoin="round"/>`;
+        break;
+      default: /* sun hat */
+        hat = `
+          <path d="M ${cx - 17} ${hy - 3} L ${cx - 13} ${hy - 18} Q ${cx} ${hy - 23} ${cx + 13} ${hy - 18} L ${cx + 17} ${hy - 3} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
+          <path d="M ${cx - 14} ${hy - 8} h 28" stroke="${t.band}" stroke-width="4.5"/>
+          <ellipse cx="${cx}" cy="${hy - 2}" rx="35" ry="7.5" fill="${t.hat}" ${o}/>`;
+    }
+
+    /* pose extras */
+    let extras = "";
+    if (pose === "sleep") {
+      extras = `
+        <text x="${cx + rx * 0.75}" y="${top - 2}" font-size="13" fill="#9a9082" class="chief-float f1">z</text>
+        <text x="${cx + rx * 0.95}" y="${top - 10}" font-size="16" fill="#9a9082" class="chief-float f2">z</text>
+        <text x="${cx + rx * 1.2}" y="${top - 20}" font-size="20" fill="#9a9082" class="chief-float f3">Z</text>`;
+    } else if (pose === "whistle") {
+      extras = `
+        <circle cx="${cx}" cy="${eyeY + eyeRY + 10}" r="3.4" fill="none" stroke="${INK.eye}" stroke-width="2.4"/>
+        <text x="${cx + rx * 0.8}" y="${eyeY - 4}" font-size="15" fill="${t.accent}" class="chief-float f1">&#9834;</text>
+        <text x="${cx + rx * 1.1}" y="${eyeY - 16}" font-size="13" fill="${t.accent}" class="chief-float f3">&#9835;</text>`;
+    } else if (pose === "attentive" && scene.snapLine) {
+      extras = `<text x="${cx + rx * 0.85}" y="${top - 8}" font-size="24" font-weight="700" fill="${t.accent}" class="chief-snap">!</text>`;
+    }
+
+    /* activity prop, sat on the ground beside him */
+    const prop = isActivity && PROPS[scene.activity.prop]
+      ? `<g transform="translate(150 ${groundY - 1}) scale(1.45)">${PROPS[scene.activity.prop]()}</g>`
+      : "";
 
     return `
       <svg class="buddy-svg ${small ? "buddy-svg--small" : ""} ${reveal ? "buddy-svg--reveal" : ""}"
-           viewBox="0 0 200 200" role="img" aria-label="Your buddy" data-buddy>
-        <defs>
-          <radialGradient id="${uid}-g" cx="38%" cy="32%" r="75%">
-            <stop offset="0%" stop-color="${pal.a}"/>
-            <stop offset="100%" stop-color="${pal.b}"/>
-          </radialGradient>
-          <clipPath id="${uid}-c"><path d="${body}"/></clipPath>
-        </defs>
-        ${sprouts}
-        <path d="${body}" fill="url(#${uid}-g)"/>
-        <g clip-path="url(#${uid}-c)">${spots}</g>
+           viewBox="0 0 200 200" role="img" aria-label="Your chief" data-buddy>
+        <ellipse cx="${isActivity ? 110 : cx}" cy="${groundY + 2}" rx="${isActivity ? 78 : rx * 1.25}" ry="6" fill="#000" opacity="0.28"/>
+        ${prop}
+        ${legs}
+        ${body}
         ${eyes}
-        ${mouth}
+        ${hat}
+        ${hands}
+        ${extras}
       </svg>`;
   }
 
-  // Render the buddy: Midjourney image if one has been plugged in, else the generative SVG stand-in.
-  function buddyVisual(opts = {}) {
+  // Render the chief: Midjourney image if one has been plugged in, else the generative SVG.
+  function buddyVisual(opts = {}, scene) {
     const b = state.buddy;
     if (!b) return "";
     if (b.imageUrl) {
       const cls = `buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}`;
-      return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your buddy" data-buddy draggable="false" />`;
+      return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your chief" data-buddy draggable="false" />`;
     }
-    return buddySVG(b.config, opts);
+    return chiefSVG(b.config, scene || { pose: "attentive" }, opts);
   }
 
   /* ----------------------------------------------------------
@@ -684,17 +856,25 @@ Write one observation in the Alright Chief voice that connects the lost and gain
 
   function midjourneyPrompt() {
     const p = state.profile;
+    const cfg = state.buddy?.config;
+    const t = cfg ? THEMES[cfg.theme % THEMES.length] : THEMES[0];
+    const hat = cfg ? HAT_NAMES[cfg.hat % 4] : HAT_NAMES[0];
+    const learned = learnedActivities();
+    const activity = learned.length
+      ? learned[Math.floor(Math.random() * learned.length)].doing
+      : "standing about contentedly, arms crossed";
     const sourceMaterial = [p.saturday, p.miss, p.love].filter(Boolean).join("; ")
       || "quiet Saturdays, music, the outdoors";
     return [
-      "small fantastical abstract creature companion, non-human,",
-      "no race, body type or age signifiers, plucky charm, strange but warm,",
-      "soft rounded organic form, asymmetric blob body, simple expressive eyes,",
-      "tiny glowing sprouts, subtle spots,",
-      `personality and textures drawn from: ${sourceMaterial},`,
-      "warm charcoal background #15120e, single amber accent light #e8923c,",
-      "soft 3d render, character design sheet, centered portrait,",
-      "its own quiet little world",
+      "small round bean-shaped mascot character, matte black body,",
+      "large plain white oval eyes, no mouth, no nose,",
+      "stubby little legs with chunky dark shoes, purple mitten hands,",
+      `wearing a ${t.name} ${hat},`,
+      `caught ${activity},`,
+      `the scene is built from his owner's life: ${sourceMaterial},`,
+      "thick clean cartoon outlines, flat colours, sticker-style character sheet,",
+      "deadpan and friendly, consistent character design,",
+      "warm charcoal background #15120e, single amber accent light #e8923c",
       "--ar 1:1 --style raw --v 6",
     ].join(" ");
   }
@@ -745,7 +925,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     "Right. Give us a second, chief…",
     "Taking what you told us…",
     "The Saturdays. The things you miss…",
-    "Making you something no one else has…",
+    "Making you someone no one else has…",
   ];
 
   const DONE_LINES = [
@@ -771,40 +951,77 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     "Oi.",
     "Heh.",
     "Steady on, chief.",
-    "It did a little wobble. For you.",
-    "It's pretending it didn't like that. It did.",
-    "It doesn't need anything. It's just glad you came.",
+    "He did a little wobble. For you.",
+    "He's pretending he didn't like that. He did.",
+    "He doesn't need anything. He's just glad you came.",
   ];
 
   const GRAB_LINES = [
-    "Oi. Mind the scruff.",
-    "Picked up like a kitten. It permits this.",
-    "It's dangling. It's fine. Probably.",
-    "Careful — it's mostly sprouts up there.",
+    "Oi. Mind the hat.",
+    "Picked up like a kitten. He permits this.",
+    "He's dangling. He's fine. Probably.",
+    "Careful — that hat is his whole look.",
   ];
 
   const DROP_LINES = [
     "Landed. Dignity mostly intact.",
-    "It bounced. It liked that, and will deny it.",
-    "Down safe. It's pretending that never happened.",
-    "Solid landing. It gives it a seven.",
+    "He bounced. He liked it, and will deny it.",
+    "Down safe. He's pretending that never happened.",
+    "Solid landing. He gives it a seven.",
   ];
 
   const SPIN_LINES = [
     "A spin. Bold.",
-    "Whee. It said nothing of the sort.",
-    "It's seeing sprouts. Give it a second.",
+    "Whee. He said nothing of the sort.",
+    "He's seeing stars. Give him a second.",
   ];
+
+  const SNAP_LINES = [
+    "Eh? Oh. It's you.",
+    "He was miles away. He's back now.",
+    "Snapped out of it. He'll deny he was bored.",
+    "You have his full attention. Briefly.",
+  ];
+
+  /* ---------- What's he up to when you visit ---------- */
+
+  // null = roll a fresh scene next time the buddy tab opens
+  let buddyScene = null;
+
+  function rollScene() {
+    const learned = learnedActivities();
+    if (learned.length && Math.random() < 0.65) {
+      return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)] };
+    }
+    const idles = ["bored", "sleep", "whistle"];
+    return { pose: idles[Math.floor(Math.random() * idles.length)] };
+  }
+
+  function sceneCaption(scene) {
+    const name = state.buddy?.name || "Your chief";
+    switch (scene.pose) {
+      case "activity":
+        return `${name} is ${scene.activity.doing}. ${scene.activity.quip}`;
+      case "sleep":
+        return `${name}'s asleep on his feet. Long day of doing your old Saturdays.`;
+      case "whistle":
+        return `${name}'s whistling something. Sounds suspiciously like the good old days.`;
+      case "bored":
+        return `${name} is just standing about. He was like that when you got here.`;
+      default:
+        return scene.snapLine || `All yours, chief. He's paying attention.`;
+    }
+  }
 
   function observeLines() {
     const p = state.profile;
-    const name = state.buddy?.name || "Your buddy";
+    const name = state.buddy?.name || "Your chief";
     const lines = [];
-    if (p.miss) lines.push(`${name} spent the morning on “${p.miss}”. Someone had to keep it going.`);
-    if (p.saturday) lines.push(`${name} had one of your old Saturdays today — “${p.saturday}”. It was thinking of you.`);
-    if (p.love) lines.push(`${name} is minding “${p.love}” for you. That's its whole job, and it takes it seriously.`);
-    lines.push(`${name} doesn't need feeding, winding or settling. It just notices when you're here.`);
-    lines.push(`${name} has been pottering about, doing the lost-column things. Vicariously, you're having a great week.`);
+    if (p.miss) lines.push(`${name} got “${p.miss}” in earlier. Someone had to keep it going.`);
+    if (p.saturday) lines.push(`${name} had one of your old Saturdays — “${p.saturday}”. He was thinking of you.`);
+    if (p.love) lines.push(`${name} is keeping “${p.love}” warm for you. He takes the job seriously.`);
+    lines.push(`${name} doesn't need feeding, winding or settling. He just notices when you check in.`);
+    lines.push(`${name} has been doing the lost-column things all week. Vicariously, you're flying.`);
     return lines;
   }
 
@@ -961,13 +1178,13 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       <div class="screen" style="gap:16px">
         <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center">
           <div class="buddy-stage">${buddyVisual({ reveal: true })}</div>
-          <h2 class="q-text" style="text-align:center">Made for you.<br/>Only you.</h2>
-          <p class="q-sub" style="text-align:center">Built from what you told us — the Saturdays, the things you miss. It'll keep an eye on them while you're busy. Every one's different. This one's yours.</p>
-          <p class="micro" style="text-align:center">Prototype note: in production this is a Midjourney render generated from your answers — the prompt's in the side panel.</p>
+          <h2 class="q-text" style="text-align:center">Your chief.<br/>No one else's.</h2>
+          <p class="q-sub" style="text-align:center">He's listening to what you tell us — the Saturdays, the things you miss — and he'll keep them running while you're busy. The hat, the build, the colours: every chief comes out a bit different. What are you calling him?</p>
+          <p class="micro" style="text-align:center">Prototype note: in production this is a Midjourney render in the house style, generated from your answers — the prompt's in the side panel.</p>
         </div>
         <div class="screen-footer">
           <div class="answer-box" style="margin-top:0">
-            <input type="text" id="buddy-name" placeholder="Give it a name" maxlength="24" autocomplete="off"/>
+            <input type="text" id="buddy-name" placeholder="Give him a name" maxlength="24" autocomplete="off"/>
             <button class="btn btn--primary" data-act="name" disabled>That's the one</button>
             <button class="btn btn--quiet" data-act="reroll">Not right? Spin up another</button>
           </div>
@@ -1006,6 +1223,9 @@ Write one observation in the Alright Chief voice that connects the lost and gain
 
   function renderApp() {
     if (state.checkin) return renderCheckin();
+
+    // Away from his screen, the chief gets back to whatever he was doing.
+    if (state.tab !== "buddy") buddyScene = null;
 
     const tabContent =
       state.tab === "balance" ? balanceTab() :
@@ -1068,7 +1288,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
             <p class="micro">No response required. It's a mirror, not a notification.</p>
           </div>` : ""}
           <div class="card" data-act="visit" style="cursor:pointer;align-items:center;text-align:center">
-            <div class="buddy-stage">${buddyVisual({ small: true })}</div>
+            <div class="buddy-stage">${buddyVisual({ small: true }, { pose: "bored" })}</div>
             <p class="card__body">${esc(obs)}</p>
             <p class="micro">Tap to visit ${name}</p>
           </div>
@@ -1134,18 +1354,18 @@ Write one observation in the Alright Chief voice that connects the lost and gain
   }
 
   function buddyTab() {
-    const name = esc(state.buddy?.name || "Your buddy");
-    const obs = pick(observeLines(), new Date().getHours() + state.entries.length);
+    const name = esc(state.buddy?.name || "Your chief");
+    if (!buddyScene) buddyScene = rollScene();
     return `
       <div class="screen" style="padding-top:10px;text-align:center">
         <h2 class="home-greeting" style="text-align:center">${name}</h2>
-        <p class="micro">Observe, or interact. Both count. It doesn't need you — it just notices when you're there.</p>
+        <p class="micro">Observe, or interact. Both count. He doesn't need you — he just notices when you're there.</p>
         <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px">
-          <div class="buddy-stage"><div class="buddy-holder" data-holder>${buddyVisual()}</div></div>
-          <p class="buddy-line" id="buddy-line">${esc(obs)}</p>
+          <div class="buddy-stage"><div class="buddy-holder" data-holder>${buddyVisual({}, buddyScene)}</div></div>
+          <p class="buddy-line" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
         </div>
         <div class="screen-footer" style="align-items:center">
-          <p class="micro">Poke it. Double-tap for a spin. Pick it up by the scruff and dangle it about. No objectives.</p>
+          <p class="micro">Tap to snap him out of whatever he's doing. Double-tap for a spin. Drag to pick him up by the scruff.</p>
           <button class="btn btn--quiet" data-act="reset-inline">Prototype v0.1 · start again</button>
         </div>
       </div>`;
@@ -1228,6 +1448,12 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         setTimeout(() => holder.classList.remove("is-dropping"), 650);
         react(DROP_LINES, Date.now());
       } else {
+        // Mid-activity or mid-nap: the first tap snaps him out of it.
+        if (buddyScene && buddyScene.pose !== "attentive") {
+          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()) };
+          render();
+          return;
+        }
         const now = Date.now();
         if (now - lastTap < 350) {
           lastTap = 0;
@@ -1424,5 +1650,6 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     if (mjFeedback) mjFeedback.textContent = "Back to the generative SVG stand-in.";
   });
 
+  state = load();
   render();
 })();
