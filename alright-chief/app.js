@@ -944,6 +944,43 @@ Hard rules:
     if (el) el.textContent = LLM.enabled() ? "Claude connected" : "scripted fallback";
   }
 
+  // In-app, mobile-reachable way to connect Claude (the side panel is desktop-only).
+  function openConnectSheet() {
+    if (document.getElementById("connect-sheet")) return;
+    const on = LLM.enabled();
+    const wrap = document.createElement("div");
+    wrap.id = "connect-sheet";
+    wrap.className = "connect-sheet";
+    wrap.innerHTML = `
+      <div class="connect-card" role="dialog" aria-label="Connect Claude">
+        <h3>Connect Claude</h3>
+        <p>Paste your Anthropic API key. It's stored only in this browser and sent straight to Claude — it powers the voice, the welcome lines, and weighing each entry by how much it genuinely means.</p>
+        <input type="password" id="cs-key" placeholder="sk-ant-…" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <p class="micro" id="cs-status">${on ? "Claude is connected." : ""}</p>
+        <button class="btn btn--primary" data-cs="save" type="button">${on ? "Update key" : "Connect"}</button>
+        ${on ? `<button class="btn btn--ghost" data-cs="clear" type="button">Disconnect</button>` : ""}
+        <button class="btn btn--quiet" data-cs="cancel" type="button">Close</button>
+        <p class="micro">Get a key at console.anthropic.com. For this prototype the key lives only on your device; a production app would route calls through a backend so no key ever ships to the client.</p>
+      </div>`;
+    document.body.appendChild(wrap);
+    const close = () => wrap.remove();
+    const keyEl = wrap.querySelector("#cs-key");
+    const statusEl = wrap.querySelector("#cs-status");
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) close(); });
+    wrap.querySelector("[data-cs=cancel]").addEventListener("click", close);
+    const clr = wrap.querySelector("[data-cs=clear]");
+    if (clr) clr.addEventListener("click", () => { LLM.setKey(""); close(); render(); });
+    wrap.querySelector("[data-cs=save]").addEventListener("click", () => {
+      const v = keyEl.value.trim();
+      if (!v) { statusEl.textContent = "Paste a key first."; return; }
+      if (!/^sk-ant-/.test(v)) { statusEl.textContent = "That doesn't look like an Anthropic key (sk-ant-…). Connecting anyway."; }
+      LLM.setKey(v);
+      close();
+      render();
+    });
+    keyEl.focus();
+  }
+
   // Swap generated copy into a live element if the user is still on that screen.
   function swapIn(elId, promise) {
     if (!LLM.enabled()) return;
@@ -1660,7 +1697,7 @@ ${list}`,
     app.innerHTML = `
       <div class="appbar">
         <span class="wordmark">Alright Chief</span>
-        <span class="date">${fmtShort(new Date().toISOString())}</span>
+        <button class="appbar__connect ${LLM.enabled() ? "is-on" : ""}" data-act="connect" type="button">${LLM.enabled() ? "Claude ✓" : "Connect Claude"}</button>
       </div>
       ${tabContent}
       <nav class="tabbar">
@@ -1738,6 +1775,7 @@ ${list}`,
     wireBuddyInteractions();
     maybeGenerateInsight();
     maybeWeighEntries();
+    app.querySelectorAll("[data-act=connect]").forEach((b) => b.addEventListener("click", openConnectSheet));
     // Claude rewrites the welcome-back line live when connected
     const r = progressReport();
     if (r && LLM.enabled() && document.getElementById("welcome-line")) {
@@ -1792,7 +1830,7 @@ ${list}`,
           </div>
         </div>
         <p class="balance-read">${esc(balanceRead(w))}</p>
-        <p class="micro" style="text-align:center">${w.judged ? "Weighed by how much each entry actually means — not by which column it's in." : LLM.enabled() ? "Weighing each entry by meaning…" : "Connect Claude to weigh each entry by how much it genuinely means."}</p>
+        <p class="micro" style="text-align:center">${w.judged ? "Weighed by how much each entry actually means — not by which column it's in." : LLM.enabled() ? "Weighing each entry by meaning…" : `<button class="linklike" data-act="connect" type="button">Connect Claude</button> to weigh each entry by how much it genuinely means.`}</p>
         ${ins ? `
         <div class="card" style="margin-top:16px">
           <p class="card__kicker">Noticed</p>

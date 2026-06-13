@@ -612,44 +612,87 @@ img.chief-sprite {
   100% { transform: rotate(360deg) scale(1); }
 }
 
-/* ---------- Chief details: blink, z's, whistle notes, snap-out ---------- */
+/* ---------- Chief details ----------
+   NB: never use CSS `transform` + `transform-box: fill-box` on SVG sub-elements
+   (eyes/accents). iOS Safari mishandles it and flings the element off the body.
+   These animations are opacity-only, which is reliable everywhere; the eyes are
+   positioned purely by their SVG coordinates. ---------- */
 
-.chief-eye {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: chief-blink 5.2s infinite;
-}
-
-@keyframes chief-blink {
-  0%, 93%, 100% { transform: scaleY(1); }
-  95%, 97% { transform: scaleY(0.08); }
-}
-
-.chief-float {
-  transform-box: fill-box;
-  opacity: 0;
-  animation: chief-float-up 2.6s ease-in-out infinite;
-}
-
+/* twinkle for floating accents (z's, notes, hearts, sparkles) — in place, no transform */
+.chief-float { opacity: 0.9; animation: chief-twinkle 2.6s ease-in-out infinite; }
 .chief-float.f2 { animation-delay: 0.85s; }
 .chief-float.f3 { animation-delay: 1.7s; }
 
-@keyframes chief-float-up {
-  0%   { opacity: 0; transform: translate(0, 0); }
-  25%  { opacity: 1; }
-  100% { opacity: 0; transform: translate(7px, -16px); }
+@keyframes chief-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
 }
 
-.chief-snap {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: chief-snap-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+.chief-snap { animation: chief-snap-fade 0.4s ease both; }
+@keyframes chief-snap-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Connect Claude: appbar button, inline link, and sheet ---------- */
+.appbar__connect {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  font: 600 11.5px var(--font-body);
+  letter-spacing: 0.04em;
+  padding: 6px 11px;
+  border-radius: 99px;
+  cursor: pointer;
+}
+.appbar__connect:hover { color: var(--ink); border-color: var(--ink-faint); }
+.appbar__connect.is-on { color: var(--accent); border-color: #4d3a21; }
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-@keyframes chief-snap-pop {
-  from { transform: scale(0); }
-  to   { transform: scale(1); }
+.connect-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(8, 6, 4, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  animation: screen-in 0.25s ease both;
 }
+@media (min-width: 560px) { .connect-sheet { align-items: center; } }
+
+.connect-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.connect-card h3 { font-family: var(--font-display); font-weight: 500; font-size: 22px; }
+.connect-card p { font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); }
+.connect-card input {
+  width: 100%;
+  background: #14110d;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font: 400 15px var(--font-body);
+  padding: 13px 14px;
+  outline: none;
+}
+.connect-card input:focus { border-color: var(--ink-faint); }
+.connect-card .btn { width: 100%; }
 
 /* Line swapped in live by the LLM voice */
 .llm-swap { animation: screen-in 0.4s ease both; }
