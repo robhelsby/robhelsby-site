@@ -128,15 +128,20 @@
 
   const HAT_NAMES = ["bucket hat", "beanie", "flat cap", "wide-brim sun hat"];
 
+  // Palette taken from the reference art: matte near-black body, thick black
+  // outline, off-white eyes, purple mitten hands, dark chunky shoes.
   const INK = {
-    body: "#211d27",    // matte black, a touch of plum so it reads on the dark bg
-    line: "#0a0810",
-    rim: "#4a4356",
+    body: "#231f29",
+    bodyLo: "#191620",
+    line: "#0c0a11",
+    rim: "#4c4557",
     eye: "#f4efe6",
+    pupil: "#1a1620",
     hand: "#8d63b8",
-    handLine: "#5d3f7e",
-    shoe: "#2e2937",
-    sole: "#56505f",
+    handLo: "#6f4c95",
+    handLine: "#4a3268",
+    shoe: "#2a2633",
+    sole: "#5b5566",
   };
 
   function genBuddyConfig(seedStr) {
@@ -144,73 +149,61 @@
     return {
       chief: true,
       seed: seedStr,
-      h: 0.85 + rand() * 0.3,       // height
-      w: 0.85 + rand() * 0.3,       // roundness
-      eye: 0.85 + rand() * 0.35,    // eye size
-      legLen: 0.8 + rand() * 0.55,  // leg length
-      tilt: rand() * 8 - 4,         // eye tilt, a bit of attitude
-      hat: Math.floor(rand() * 4),  // bucket | beanie | flat cap | sun hat
+      h: 0.9 + rand() * 0.22,        // body height
+      w: 0.9 + rand() * 0.2,         // body width
+      eye: 0.9 + rand() * 0.25,      // eye size
+      eyeGap: 0.9 + rand() * 0.3,    // spacing
+      legLen: 0.85 + rand() * 0.4,   // leg length
+      hat: Math.floor(rand() * 4),   // bucket | beanie | flat cap | sun hat
       theme: Math.floor(rand() * THEMES.length),
     };
   }
 
-  /* ---------- Activity props (drawn anchored at bottom-centre, origin = ground) ---------- */
+  /* ---------- Activity props (drawn at the chief's side, origin = ground) ---------- */
 
   const PROPS = {
-    dumbbell: () => `
-      <rect x="-21" y="-12" width="42" height="5" rx="2.5" fill="#777e88" stroke="${INK.line}" stroke-width="2.5"/>
-      <circle cx="-19" cy="-9.5" r="9" fill="#3a3f47" stroke="${INK.line}" stroke-width="2.5"/>
-      <circle cx="19" cy="-9.5" r="9" fill="#3a3f47" stroke="${INK.line}" stroke-width="2.5"/>`,
-    football: () => `
-      <circle cx="0" cy="-9" r="9" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5"/>
-      <path d="M 0 -12 l 3.4 2.4 -1.3 4 -4.2 0 -1.3 -4 Z" fill="#262229"/>`,
-    bike: () => `
-      <circle cx="-15" cy="-10" r="10" fill="none" stroke="#9a93a6" stroke-width="2.6"/>
-      <circle cx="15" cy="-10" r="10" fill="none" stroke="#9a93a6" stroke-width="2.6"/>
-      <path d="M -15 -10 L -6 -24 L 8 -24 L 15 -10 L 0 -10 L -6 -24 M 0 -10 L -15 -10" fill="none" stroke="#b05a3c" stroke-width="2.6" stroke-linejoin="round"/>
-      <path d="M -8 -27 h 5 M 8 -24 l 3 -4 h 3" stroke="${INK.line}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
     vinyl: () => `
-      <rect x="-18" y="-13" width="36" height="13" rx="2" fill="#4a4453" stroke="${INK.line}" stroke-width="2.5"/>
-      <circle cx="-4" cy="-6.5" r="5.5" fill="#16131b" stroke="${INK.line}" stroke-width="2"/>
-      <circle cx="-4" cy="-6.5" r="1.6" fill="#c9a04a"/>
-      <path d="M 10 -10 l 4 5" stroke="#cfc8bb" stroke-width="2" stroke-linecap="round"/>`,
-    pint: () => `
-      <path d="M -7 -20 L -5 0 L 5 0 L 7 -20 Z" fill="#c9802f" stroke="${INK.line}" stroke-width="2.5" stroke-linejoin="round"/>
-      <rect x="-8" y="-25" width="16" height="6" rx="3" fill="#f0ead9" stroke="${INK.line}" stroke-width="2.5"/>`,
-    tv: () => `
-      <path d="M -8 0 l -3 4 M 8 0 l 3 4" stroke="${INK.line}" stroke-width="2.5" stroke-linecap="round"/>
-      <rect x="-17" y="-24" width="34" height="24" rx="3" fill="#3a3540" stroke="${INK.line}" stroke-width="2.5"/>
-      <rect x="-13" y="-20" width="26" height="14" rx="1.5" fill="#7fb3ae"/>
-      <path d="M -4 -24 l -5 -7 M 4 -24 l 5 -7" stroke="${INK.line}" stroke-width="2" stroke-linecap="round"/>`,
+      <rect x="-22" y="-15" width="44" height="15" rx="2.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
+      <circle cx="-5" cy="-7.5" r="6.5" fill="#15121b" stroke="${INK.line}" stroke-width="2"/>
+      <circle cx="-5" cy="-7.5" r="1.8" fill="#c9a04a"/>
+      <path d="M 9 -11 l 6 4" stroke="#cfc8bb" stroke-width="2.2" stroke-linecap="round"/>`,
     controller: () => `
-      <rect x="-15" y="-13" width="30" height="13" rx="6.5" fill="#4a4453" stroke="${INK.line}" stroke-width="2.5"/>
-      <circle cx="7" cy="-8.5" r="2" fill="#c9a04a"/>
-      <circle cx="10.5" cy="-5.5" r="2" fill="#b05a3c"/>
-      <path d="M -10 -6.5 h 6 M -7 -9.5 v 6" stroke="#9a93a6" stroke-width="2" stroke-linecap="round"/>`,
-    book: () => `
-      <path d="M -14 -6 Q -7 -12 0 -7 Q 7 -12 14 -6 L 14 -1 Q 7 -6 0 -1 Q -7 -6 -14 -1 Z" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M 0 -7 L 0 -1" stroke="${INK.line}" stroke-width="1.6"/>`,
+      <rect x="-18" y="-15" width="36" height="15" rx="7.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
+      <circle cx="8" cy="-9.5" r="2.4" fill="#c9a04a"/><circle cx="12" cy="-6" r="2.4" fill="#b05a3c"/>
+      <path d="M -11 -7.5 h 7 M -7.5 -11 v 7" stroke="#9a93a6" stroke-width="2.4" stroke-linecap="round"/>`,
     fishing: () => `
-      <ellipse cx="8" cy="0" rx="16" ry="3.5" fill="#5d7286" opacity="0.5"/>
-      <path d="M -18 -2 L 12 -34" stroke="#8a6d4f" stroke-width="2.8" stroke-linecap="round"/>
-      <path d="M 12 -34 q 5 16 -2 28" stroke="#cfc8bb" stroke-width="1.5" fill="none"/>
-      <circle cx="10" cy="-6" r="2.2" fill="#b05a3c"/>`,
+      <ellipse cx="6" cy="0" rx="22" ry="4" fill="#5d7286" opacity="0.45"/>
+      <path d="M -22 -4 L 16 -44" stroke="#8a6d4f" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M 16 -44 q 7 22 -3 38" stroke="#cfc8bb" stroke-width="1.8" fill="none"/>
+      <circle cx="13" cy="-8" r="2.6" fill="#b05a3c"/>`,
     coffee: () => `
-      <rect x="-8" y="-13" width="16" height="13" rx="2" fill="#ece6da" stroke="${INK.line}" stroke-width="2.5"/>
-      <path d="M 8 -10 q 7 2.5 0 6" stroke="${INK.line}" stroke-width="2.5" fill="none"/>
-      <path d="M -3 -17 q 2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f2"/>
-      <path d="M 3 -17 q -2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f3"/>`,
-    golf: () => `
-      <path d="M 8 -32 V 0" stroke="#8a8f98" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M 8 -32 l 12 4.5 -12 4.5 Z" fill="#b05a3c" stroke="${INK.line}" stroke-width="2"/>
-      <circle cx="-9" cy="-3" r="3" fill="#ece6da" stroke="${INK.line}" stroke-width="2"/>`,
-    pan: () => `
-      <ellipse cx="-3" cy="-5" rx="13" ry="5" fill="#3a3540" stroke="${INK.line}" stroke-width="2.5"/>
-      <path d="M 10 -6 L 21 -9" stroke="#3a3540" stroke-width="4" stroke-linecap="round"/>
-      <path d="M -7 -12 q 2 -3 0 -6 M 1 -12 q 2 -3 0 -6" stroke="#9a9082" stroke-width="2" fill="none" stroke-linecap="round" class="chief-float f2"/>`,
-    trainers: () => `
-      <path d="M -16 0 L -16 -5 Q -8 -8 -2 -4 L 4 -1 Q 5 0 3 0 Z" fill="#ece6da" stroke="${INK.line}" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M 2 0 L 2 -5 Q 10 -8 16 -4 L 21 -1 Q 22 0 20 0 Z" fill="#b05a3c" stroke="${INK.line}" stroke-width="2.2" stroke-linejoin="round"/>`,
+      <rect x="-11" y="-17" width="22" height="17" rx="2.5" fill="#ece6da" stroke="${INK.line}" stroke-width="3"/>
+      <path d="M 11 -13 q 9 3 0 8" stroke="${INK.line}" stroke-width="3" fill="none"/>
+      <path d="M -4 -22 q 2.5 -4 0 -8" stroke="#9a9082" stroke-width="2.4" fill="none" stroke-linecap="round" class="chief-float f2"/>
+      <path d="M 4 -22 q -2.5 -4 0 -8" stroke="#9a9082" stroke-width="2.4" fill="none" stroke-linecap="round" class="chief-float f3"/>`,
+    pint: () => `
+      <path d="M -9 -26 L -6 0 L 6 0 L 9 -26 Z" fill="#c9802f" stroke="${INK.line}" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="-10" y="-31" width="20" height="7" rx="3.5" fill="#f0ead9" stroke="${INK.line}" stroke-width="3"/>`,
+    plant: () => `
+      <rect x="-16" y="-12" width="32" height="12" rx="2" fill="#7e5a3c" stroke="${INK.line}" stroke-width="3"/>
+      <path d="M -8 -12 q -3 -14 2 -18 M 0 -12 q 0 -16 0 -20 M 8 -12 q 3 -14 -2 -18" stroke="#6f7d44" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <circle cx="-6" cy="-30" r="3" fill="#b05a3c"/><circle cx="8" cy="-30" r="3" fill="#c9a04a"/>`,
+    engine: () => `
+      <rect x="-18" y="-18" width="36" height="18" rx="2.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
+      <circle cx="-6" cy="-9" r="5.5" fill="#5b5566" stroke="${INK.line}" stroke-width="2"/>
+      <rect x="4" y="-15" width="9" height="11" rx="1.5" fill="#5b5566" stroke="${INK.line}" stroke-width="2"/>`,
+    drone: () => `
+      <g class="chief-float f1">
+        <rect x="-9" y="-26" width="18" height="7" rx="2" fill="#3a3444" stroke="${INK.line}" stroke-width="2.5"/>
+        <path d="M -9 -23 L -20 -28 M 9 -23 L 20 -28" stroke="${INK.line}" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="-20" cy="-28" rx="7" ry="2" fill="#9a93a6"/><ellipse cx="20" cy="-28" rx="7" ry="2" fill="#9a93a6"/>
+      </g>`,
+    telescope: () => `
+      <path d="M -14 -2 L 14 -30" stroke="#3a3444" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="14" cy="-30" r="4" fill="#5d7286" stroke="${INK.line}" stroke-width="2"/>
+      <path d="M -14 -2 L -20 0 M -14 -2 L -8 0" stroke="${INK.line}" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="20" cy="-36" r="1.6" fill="#c9a04a" class="chief-float f2"/>
+      <circle cx="26" cy="-30" r="1.2" fill="#f4efe6" class="chief-float f3"/>`,
   };
 
   /* ---------- Activities the chief can learn from what the dad tells the app ----------
@@ -218,24 +211,62 @@
      fallback drawn on the SVG chief when sprite art can't load. ---------- */
 
   const ACTIVITIES = [
-    { id: "music", sprite: "vinyl", prop: "vinyl", doing: "back in the records", quip: "Filed exactly how you left them.",
-      keywords: ["music", "gig", "gigs", "record", "records", "vinyl", "band", "guitar", "dj", "album", "albums", "spotify"] },
-    { id: "gaming", sprite: "gamer", prop: "controller", doing: "getting a few rounds in", quip: "Your save file's safe with him.",
-      keywords: ["gaming", "video game", "video games", "playstation", "xbox", "console", "games", "fifa"] },
-    { id: "fishing", sprite: "fisher", prop: "fishing", doing: "down at the water", quip: "Nothing's biting. He doesn't mind.",
-      keywords: ["fishing", "fish", "angling", "carp", "fly fishing"] },
-    { id: "coffee", sprite: "coffee", prop: "coffee", doing: "grinding a proper coffee", quip: "Drinking it while it's hot. Imagine.",
-      keywords: ["coffee", "espresso", "flat white", "barista", "beans", "cafetiere"] },
-    { id: "pint", sprite: "brewer", prop: "pint", doing: "tending the home-brew", quip: "He got a batch on. It's nearly ready.",
-      keywords: ["pub", "pint", "beer", "brewery", "brewing", "ale", "lads", "homebrew", "home brew"] },
-    { id: "gardening", sprite: "gardener", prop: "pan", doing: "out in the garden", quip: "Tomatoes are coming along. Yours.",
+    { id: "music", sprite: "music", prop: "vinyl", doing: "spinning some records", quip: "Filed exactly how you left them.",
+      keywords: ["music", "gig", "gigs", "record", "records", "vinyl", "dj", "album", "albums", "spotify"] },
+    { id: "guitar", sprite: "guitar", prop: "vinyl", doing: "having a play", quip: "Still knows your three chords.",
+      keywords: ["guitar", "band", "play guitar", "strum", "bass"] },
+    { id: "gaming", sprite: "gaming", prop: "controller", doing: "getting a few rounds in", quip: "Your save file's safe with him.",
+      keywords: ["gaming", "video game", "video games", "playstation", "xbox", "console", "games", "fifa", "controller"] },
+    { id: "fishing", sprite: "fishing", prop: "fishing", doing: "down at the water", quip: "Nothing's biting. He doesn't mind.",
+      keywords: ["fishing", "fish", "angling", "carp"] },
+    { id: "cycling", sprite: "cycling", prop: "fishing", doing: "out on the bike", quip: "Your long route. No punctures yet.",
+      keywords: ["bike", "cycling", "cycle", "ride", "riding", "bicycle"] },
+    { id: "football", sprite: "football", prop: "controller", doing: "having a kickabout", quip: "First touch needs work. So did yours.",
+      keywords: ["football", "five-a-side", "five a side", "footy", "soccer", "match"] },
+    { id: "basketball", sprite: "basketball", prop: "controller", doing: "shooting hoops", quip: "Still got the jump shot.",
+      keywords: ["basketball", "hoops", "nba"] },
+    { id: "golf", sprite: "golf", prop: "vinyl", doing: "on the back nine", quip: "Still playing off your handicap.",
+      keywords: ["golf", "driving range", "tee off"] },
+    { id: "tennis", sprite: "tennis", prop: "controller", doing: "having a knock", quip: "Backhand's coming along.",
+      keywords: ["tennis", "racket", "padel", "squash"] },
+    { id: "boxing", sprite: "boxing", prop: "controller", doing: "working the bag", quip: "Getting it all out. Good.",
+      keywords: ["boxing", "box", "bag work", "sparring", "gym", "weights", "workout", "training", "fitness"] },
+    { id: "running", sprite: "skateboarding", prop: "controller", doing: "out moving", quip: "Your pace. Showing off.",
+      keywords: ["running", "run", "parkrun", "jog", "skate", "skateboard", "skateboarding"] },
+    { id: "cooking", sprite: "cooking", prop: "vinyl", doing: "doing something on the BBQ", quip: "Low and slow. Nobody grabbing his leg.",
+      keywords: ["cooking", "cook", "baking", "kitchen", "bbq", "barbecue", "grill"] },
+    { id: "brewing", sprite: "brewing", prop: "pint", doing: "tending the home-brew", quip: "A batch on. Nearly ready.",
+      keywords: ["pub", "pint", "beer", "brewery", "brewing", "ale", "homebrew", "home brew", "lads"] },
+    { id: "reading", sprite: "reading", prop: "vinyl", doing: "feet up with a book", quip: "Past the bit where you fell asleep.",
+      keywords: ["reading", "read a book", "book", "books", "novel", "relax"] },
+    { id: "photography", sprite: "photography", prop: "vinyl", doing: "out with the camera", quip: "Got the light just right.",
+      keywords: ["photography", "photo", "photos", "camera", "shooting"] },
+    { id: "gardening", sprite: "gardening", prop: "plant", doing: "out in the garden", quip: "Tomatoes coming along. Yours.",
       keywords: ["garden", "gardening", "allotment", "plants", "growing", "veg", "vegetables"] },
-    { id: "mechanic", sprite: "mechanic", prop: "controller", doing: "elbow-deep in the engine", quip: "He'll have it running by the weekend.",
-      keywords: ["motorbike", "motorcycle", "car", "cars", "mechanic", "engine", "garage", "tinkering"] },
-    { id: "drone", sprite: "drone", prop: "controller", doing: "flying the drone", quip: "Got the landing down. Mostly.",
-      keywords: ["drone", "drones", "flying", "rc", "quadcopter"] },
-    { id: "astronomy", sprite: "astronomer", prop: "golf", doing: "out under the stars", quip: "Found something. He'll show you.",
-      keywords: ["astronomy", "stars", "stargazing", "telescope", "space", "planets"] },
+    { id: "woodwork", sprite: "woodwork", prop: "engine", doing: "at the workbench", quip: "Measured twice. Obviously.",
+      keywords: ["woodwork", "carpentry", "diy", "whittling", "building", "joinery", "shed"] },
+    { id: "drawing", sprite: "drawing", prop: "vinyl", doing: "sketching something", quip: "Your old sketchbook habit, alive and well.",
+      keywords: ["drawing", "draw", "sketch", "illustration", "art", "painting", "paint"] },
+    { id: "motorbikes", sprite: "motorbikes", prop: "engine", doing: "out on the bike", quip: "Helmet on, head clear.",
+      keywords: ["motorbike", "motorcycle", "biking"] },
+    { id: "car", sprite: "car", prop: "engine", doing: "under the bonnet", quip: "He'll have it running by the weekend.",
+      keywords: ["car", "cars", "mechanic", "engine", "garage", "tinkering", "restoring"] },
+    { id: "hiking", sprite: "hiking", prop: "plant", doing: "up a hill somewhere", quip: "Took the long way. On purpose.",
+      keywords: ["hiking", "hike", "walking", "walks", "hills", "trail", "outdoors", "mountains"] },
+    { id: "camping", sprite: "camping", prop: "plant", doing: "set up camp", quip: "Fire's going. Phone's off.",
+      keywords: ["camping", "camp", "tent", "wild camping"] },
+    { id: "surfing", sprite: "surfing", prop: "fishing", doing: "out in the surf", quip: "Caught a few. Salt in everything.",
+      keywords: ["surf", "surfing", "waves", "bodyboard"] },
+    { id: "podcasting", sprite: "podcasting", prop: "controller", doing: "recording something", quip: "Mic on. Opinions ready.",
+      keywords: ["podcast", "podcasting", "recording"] },
+    { id: "writing", sprite: "writing", prop: "vinyl", doing: "journaling", quip: "Getting it down on paper. Like this, really.",
+      keywords: ["writing", "write", "journal", "journaling", "diary", "blog"] },
+    { id: "travel", sprite: "travel", prop: "plant", doing: "planning a trip", quip: "Map out, somewhere new circled.",
+      keywords: ["travel", "trip", "holiday", "adventure", "explore"] },
+    { id: "dancing", sprite: "dancing", prop: "vinyl", doing: "having a dance", quip: "No one watching. The best kind.",
+      keywords: ["dancing", "dance"] },
+    { id: "language", sprite: "language", prop: "vinyl", doing: "learning a language", quip: "Three words in. Committed.",
+      keywords: ["language", "languages", "learning", "duolingo", "spanish", "french"] },
   ];
 
   // Everything the dad has told the app — onboarding plus both ledger columns —
@@ -251,167 +282,282 @@
       a.keywords.some((k) => new RegExp(`\\b${k.replace(/[-\s]/g, "[-\\s]")}\\b`).test(sources)));
   }
 
-  /* ---------- Drawing the chief ---------- */
+  /* ---------- Drawing the chief — faithful to the reference, fully animated ----------
+     A single vector character: matte-black bean body with a thick outline, big white
+     oval eyes, purple mitten hands, chunky shoes, hatted. He breathes and blinks on
+     idle; expression and arm pose change with mood and activity; he squishes when
+     poked, spins on double-tap, and dangles when picked up by the scruff. ---------- */
 
-  function chiefSVG(config, scene = { pose: "attentive" }, { small = false, reveal = false } = {}) {
+  // A scene resolves to an expression + arm pose + optional prop + accents.
+  function resolveScene(scene) {
+    const s = scene || { pose: "attentive" };
+    switch (s.pose) {
+      case "activity":
+        return { expr: "open", arms: "toProp", prop: s.activity && s.activity.prop, accent: null };
+      case "sleep":    return { expr: "sleeping", arms: "rest", accent: "zzz" };
+      case "walking":  return { expr: "open", arms: "swing", accent: null, walk: true };
+      case "whistle":  return { expr: "whistle", arms: "sides", accent: "notes" };
+      case "excited":  return { expr: "excited", arms: "up", accent: "sparkle" };
+      case "joy":      return { expr: "joy", arms: "up", accent: "sparkle" };
+      case "attentive":return { expr: "wide", arms: "sides", accent: s.snapLine ? "snap" : null };
+      case "bored":    return moodScene(currentMood());
+      default:
+        // a direct mood name
+        if (MOODS[s.pose]) return moodScene(s.pose);
+        return { expr: "open", arms: "sides", accent: null };
+    }
+  }
+
+  // expression + arms + accent for each mood name
+  const MOODS = {
+    despair:   { expr: "shut",     arms: "onHead", accent: "rain" },
+    lonely:    { expr: "sad",      arms: "sides",  accent: null, small: true },
+    sad:       { expr: "sad",      arms: "sides",  accent: null },
+    slumped:   { expr: "halflid",  arms: "sides",  accent: null, slump: true },
+    bored:     { expr: "halflid",  arms: "crossed",accent: null },
+    content:   { expr: "open",     arms: "crossed",accent: null },
+    fulfilled: { expr: "soft",     arms: "crossed",accent: "sparkle" },
+    connected: { expr: "soft",     arms: "heart",  accent: "hearts" },
+    joy:       { expr: "joy",      arms: "up",     accent: "sparkle" },
+    inlove:    { expr: "heart",    arms: "heart",  accent: "hearts" },
+  };
+  const moodScene = (name) => Object.assign({ name }, MOODS[name] || MOODS.content);
+
+  function chiefSVG(config, scene, { small = false, reveal = false } = {}) {
     const t = THEMES[config.theme % THEMES.length];
-    const pose = scene.pose || "attentive";
-    const isActivity = pose === "activity" && scene.activity;
+    const r = resolveScene(scene);
+    const shrink = r.small ? 0.7 : 1;
 
-    const cx = isActivity ? 76 : 100;
-    const cy = 98;
-    const rx = 40 * config.w;
-    const ry = 50 * config.h;
-    const top = cy - ry;
-    const bottom = cy + ry;
-    const legLen = 12 * config.legLen;
+    // geometry
+    const bx = 100, by = 124;
+    const rx = 40 * config.w * shrink;
+    const ry = 50 * config.h * shrink;
+    const top = by - ry, bottom = by + ry;
+    const legLen = 13 * config.legLen;
     const footY = bottom + legLen;
-    const groundY = footY + 6;
-    const o = `stroke="${INK.line}" stroke-width="3"`;
+    const groundY = footY + 7;
+    const o = `stroke="${INK.line}" stroke-width="3" stroke-linejoin="round"`;
+    const uid = "c" + (hashString(config.seed) % 99999);
 
-    /* legs + shoes */
-    const legDX = rx * 0.38;
-    const legs = [-1, 1].map((s) => `
-      <path d="M ${cx + s * legDX} ${bottom - 6} V ${footY - 3}" stroke="${INK.body}" stroke-width="7" stroke-linecap="round"/>
-      <ellipse cx="${cx + s * legDX + s * 3}" cy="${footY}" rx="10" ry="5.5" fill="${INK.shoe}" ${o}/>
-      <path d="M ${cx + s * legDX - 7 + s * 3} ${footY + 2.5} h 14" stroke="${INK.sole}" stroke-width="2"/>`).join("");
+    /* legs + chunky shoes */
+    const legDX = rx * 0.4;
+    const stride = r.walk ? 5 : 0;
+    const legs = [-1, 1].map((sgn, i) => {
+      const lx = bx + sgn * legDX;
+      const dy = r.walk ? (i === 0 ? -3 : 0) : 0;
+      return `
+        <path d="M ${lx} ${bottom - 8} V ${footY - 4 + dy}" stroke="${INK.body}" stroke-width="9" stroke-linecap="round"/>
+        <path d="M ${lx - 11 + sgn * stride} ${footY + dy} h 21 a 6 6 0 0 1 6 6 h -27 Z"
+              fill="${INK.shoe}" ${o}/>
+        <path d="M ${lx - 11 + sgn * stride} ${footY + 6 + dy} h 27" stroke="${INK.sole}" stroke-width="2.5"/>`;
+    }).join("");
+
+    /* arms + mitten hands */
+    const mitten = (mx, my, sc = 1) => `
+      <g class="chief-mitt">
+        <ellipse cx="${mx}" cy="${my}" rx="${(10 * sc).toFixed(1)}" ry="${(11 * sc).toFixed(1)}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.6"/>
+        <path d="M ${mx} ${my} a ${10 * sc} ${11 * sc} 0 0 0 0 ${11 * sc}" fill="${INK.handLo}" opacity="0.5"/>
+        <circle cx="${(mx - 8 * sc).toFixed(1)}" cy="${(my + 2).toFixed(1)}" r="${(4 * sc).toFixed(1)}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.2"/>
+      </g>`;
+    const arm = (x1, y1, x2, y2) => `<path d="M ${x1} ${y1} Q ${(x1 + x2) / 2} ${(y1 + y2) / 2 + 4} ${x2} ${y2}" stroke="${INK.body}" stroke-width="8" stroke-linecap="round" fill="none"/>`;
+    const sh = (sgn) => [bx + sgn * rx * 0.66, by - ry * 0.08]; // shoulder
+
+    function arms() {
+      const L = sh(-1), R = sh(1);
+      switch (r.arms) {
+        case "crossed":
+          return arm(...L, bx + 9, by + ry * 0.30) + arm(...R, bx - 9, by + ry * 0.24)
+            + mitten(bx + 11, by + ry * 0.30) + mitten(bx - 11, by + ry * 0.24);
+        case "up":
+          return arm(...L, bx - rx * 0.74, by - ry * 0.62) + arm(...R, bx + rx * 0.74, by - ry * 0.62)
+            + mitten(bx - rx * 0.74, by - ry * 0.66) + mitten(bx + rx * 0.74, by - ry * 0.66);
+        case "onHead":
+          return arm(...L, bx - rx * 0.5, top + 6) + arm(...R, bx + rx * 0.5, top + 6)
+            + mitten(bx - rx * 0.5, top + 4) + mitten(bx + rx * 0.5, top + 4);
+        case "heart":
+          return arm(...L, bx - 7, by - ry * 0.04) + arm(...R, bx + 7, by - ry * 0.04)
+            + mitten(bx - 7, by - ry * 0.04, 0.95) + mitten(bx + 7, by - ry * 0.04, 0.95);
+        case "toProp":
+          return arm(...L, bx - rx - 3, by + ry * 0.22) + arm(...R, bx + rx + 6, by - ry * 0.02)
+            + mitten(bx - rx - 3, by + ry * 0.22) + mitten(bx + rx + 7, by - ry * 0.02);
+        case "swing":
+          return arm(...L, bx - rx - 3, by + ry * 0.02) + arm(...R, bx + rx + 2, by + ry * 0.34)
+            + mitten(bx - rx - 4, by + ry * 0.02) + mitten(bx + rx + 3, by + ry * 0.34);
+        case "rest":
+          return mitten(bx - rx * 0.55, by + ry * 0.46, 0.9) + mitten(bx + rx * 0.55, by + ry * 0.46, 0.9);
+        default: /* sides */
+          return arm(...L, bx - rx - 2, by + ry * 0.2) + arm(...R, bx + rx + 2, by + ry * 0.2)
+            + mitten(bx - rx - 3, by + ry * 0.2) + mitten(bx + rx + 3, by + ry * 0.2);
+      }
+    }
 
     /* body */
     const body = `
-      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${INK.body}" ${o}/>
-      <path d="M ${cx - rx * 0.55} ${cy - ry * 0.62} Q ${cx - rx * 0.85} ${cy - ry * 0.18} ${cx - rx * 0.62} ${cy + ry * 0.35}"
-            fill="none" stroke="${INK.rim}" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>`;
+      <defs>
+        <linearGradient id="${uid}-b" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${INK.body}"/><stop offset="100%" stop-color="${INK.bodyLo}"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="${bx}" cy="${by}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="url(#${uid}-b)" ${o}/>
+      <path d="M ${bx - rx * 0.55} ${by - ry * 0.6} Q ${bx - rx * 0.9} ${by - ry * 0.1} ${bx - rx * 0.62} ${by + ry * 0.4}"
+            fill="none" stroke="${INK.rim}" stroke-width="2.6" stroke-linecap="round" opacity="0.6"/>`;
 
-    /* eyes */
-    const eyeY = cy - ry * 0.26;
-    const eyeDX = rx * 0.42;
-    const eyeRX = 8.5 * config.eye;
-    const eyeRY = 12 * config.eye;
-    let eyes = "";
-    if (pose === "sleep") {
-      eyes = [-1, 1].map((s) => `
-        <path d="M ${cx + s * eyeDX - eyeRX} ${eyeY} q ${eyeRX} ${eyeRY * 0.65} ${eyeRX * 2} 0"
-              stroke="${INK.eye}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`).join("");
-    } else {
-      const lidH = pose === "bored" ? eyeRY * 0.9 : 0;
-      eyes = [-1, 1].map((s) => `
-        <g class="${pose === "bored" ? "" : "chief-eye"}" transform="rotate(${(config.tilt * s).toFixed(1)} ${cx + s * eyeDX} ${eyeY})">
-          <ellipse cx="${cx + s * eyeDX}" cy="${eyeY}" rx="${eyeRX.toFixed(1)}" ry="${eyeRY.toFixed(1)}" fill="${INK.eye}"/>
-          ${lidH ? `<path d="M ${cx + s * eyeDX - eyeRX - 1} ${eyeY - eyeRY - 1} h ${eyeRX * 2 + 2} v ${lidH} h ${-(eyeRX * 2 + 2)} Z" fill="${INK.body}"/>` : ""}
-        </g>`).join("");
-    }
+    /* eyes / expression */
+    const ey = by - ry * 0.26;
+    const edx = rx * 0.4 * config.eyeGap;
+    const erx = 9 * config.eye, ery = 12.5 * config.eye;
+    const pupilOff = r.expr === "sad" ? ery * 0.42 : 0;
+    let face = "";
+    const openEye = (sgn, lid = 0) => {
+      const x = bx + sgn * edx;
+      return `<g class="chief-eye">
+        <ellipse cx="${x}" cy="${ey}" rx="${erx.toFixed(1)}" ry="${ery.toFixed(1)}" fill="${INK.eye}"/>
+        <circle cx="${(x + sgn * 1).toFixed(1)}" cy="${(ey + pupilOff).toFixed(1)}" r="${(erx * 0.5).toFixed(1)}" fill="${INK.pupil}"/>
+        <circle cx="${(x + sgn * 1 + 2).toFixed(1)}" cy="${(ey + pupilOff - 2).toFixed(1)}" r="1.6" fill="#fff"/>
+        ${lid ? `<path d="M ${x - erx - 1} ${ey - ery - 1} h ${erx * 2 + 2} v ${lid} h ${-(erx * 2 + 2)} Z" fill="${INK.body}"/>` : ""}
+      </g>`;
+    };
+    const arcEye = (sgn, up) => {
+      const x = bx + sgn * edx;
+      return up
+        ? `<path d="M ${x - erx} ${ey + 2} Q ${x} ${ey - ery} ${x + erx} ${ey + 2}" stroke="${INK.pupil}" stroke-width="3.4" fill="none" stroke-linecap="round"/>`
+        : `<path d="M ${x - erx} ${ey - 2} Q ${x} ${ey + ery * 0.7} ${x + erx} ${ey - 2}" stroke="${INK.pupil}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    };
+    const heartEye = (sgn) => {
+      const x = bx + sgn * edx;
+      return `<g class="chief-eye"><ellipse cx="${x}" cy="${ey}" rx="${erx}" ry="${ery}" fill="${INK.eye}"/>
+        <path d="M ${x} ${ey + 4} l -4 -5 a 2.6 2.6 0 0 1 4 -2 a 2.6 2.6 0 0 1 4 2 Z" fill="#c4476a"/></g>`;
+    };
+    const sadEye = (sgn) => {
+      const x = bx + sgn * edx;
+      return `<g class="chief-eye"><ellipse cx="${x}" cy="${ey}" rx="${erx}" ry="${ery}" fill="${INK.eye}"/>
+        <circle cx="${x}" cy="${ey + ery * 0.42}" r="${(erx * 0.5).toFixed(1)}" fill="${INK.pupil}"/>
+        <path d="M ${x - erx - 1} ${ey - ery * 0.7} q ${erx} ${-ery * 0.5} ${erx * 2} ${ery * 0.2}" stroke="${INK.body}" stroke-width="4" fill="none" stroke-linecap="round"/></g>`;
+    };
 
-    /* hands — purple mittens; crossed when idling, raised toward the prop when busy */
-    const handR = 9.5;
-    let hands = "";
-    if (pose === "bored" || pose === "sleep") {
-      hands = `
-        <ellipse cx="${cx - 8}" cy="${cy + ry * 0.34}" rx="${handR + 2}" ry="${handR - 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>
-        <ellipse cx="${cx + 9}" cy="${cy + ry * 0.3}" rx="${handR + 2}" ry="${handR - 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`;
-    } else if (isActivity) {
-      hands = `
-        <ellipse cx="${cx - rx - 4}" cy="${cy + ry * 0.22}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>
-        <ellipse cx="${cx + rx + 7}" cy="${cy - ry * 0.12}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`;
-    } else {
-      hands = [-1, 1].map((s) => `
-        <ellipse cx="${cx + s * (rx + 4)}" cy="${cy + ry * 0.22}" rx="${handR}" ry="${handR + 1}" fill="${INK.hand}" stroke="${INK.handLine}" stroke-width="2.5"/>`).join("");
+    switch (r.expr) {
+      case "sleeping": face = [-1, 1].map((s) => { const x = bx + s * edx; return `<path d="M ${x - erx} ${ey} q ${erx} ${ery * 0.6} ${erx * 2} 0" stroke="${INK.eye}" stroke-width="3" fill="none" stroke-linecap="round"/>`; }).join(""); break;
+      case "shut":   face = [-1, 1].map((s) => arcEye(s, false)).join(""); break;
+      case "joy":    face = [-1, 1].map((s) => arcEye(s, true)).join(""); break;
+      case "halflid":face = [-1, 1].map((s) => openEye(s, ery * 0.95)).join(""); break;
+      case "soft":   face = [-1, 1].map((s) => openEye(s, ery * 0.45)).join(""); break;
+      case "sad":    face = [-1, 1].map((s) => sadEye(s)).join(""); break;
+      case "heart":  face = [-1, 1].map((s) => heartEye(s)).join(""); break;
+      case "wide":   face = [-1, 1].map((s) => openEye(s, 0)).join("") + `<ellipse cx="${bx}" cy="${ey + ery + 7}" rx="3.4" ry="4.4" fill="${INK.pupil}"/>`; break;
+      case "whistle":face = [-1, 1].map((s) => openEye(s, 0)).join("") + `<circle cx="${bx + edx * 0.5}" cy="${ey + ery + 8}" r="3.2" fill="none" stroke="${INK.pupil}" stroke-width="2.4"/>`; break;
+      case "excited":face = [-1, 1].map((s) => openEye(s, 0)).join(""); break;
+      default:       face = [-1, 1].map((s) => openEye(s, 0)).join(""); // open
     }
 
     /* hat */
-    const hy = top + 7;
+    const hy = top + 8;
     let hat = "";
     switch (config.hat % 4) {
-      case 0: /* bucket */
-        hat = `
-          <path d="M ${cx - 21} ${hy} L ${cx - 15} ${hy - 19} Q ${cx} ${hy - 26} ${cx + 15} ${hy - 19} L ${cx + 21} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
-          <path d="M ${cx - 16} ${hy - 7} h 32" stroke="${t.band}" stroke-width="4"/>
-          <ellipse cx="${cx}" cy="${hy}" rx="29" ry="6.5" fill="${t.hat}" ${o}/>`;
-        break;
-      case 1: /* beanie */
-        hat = `
-          <circle cx="${cx}" cy="${hy - 22}" r="4.5" fill="${t.band}" ${o}/>
-          <path d="M ${cx - 23} ${hy} Q ${cx} ${hy - 42} ${cx + 23} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
-          <rect x="${cx - 24}" y="${hy - 6}" width="48" height="9" rx="4.5" fill="${t.band}" ${o}/>`;
-        break;
-      case 2: /* flat cap */
-        hat = `
-          <path d="M ${cx - 22} ${hy} Q ${cx - 18} ${hy - 18} ${cx + 2} ${hy - 17} Q ${cx + 20} ${hy - 16} ${cx + 22} ${hy} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
-          <path d="M ${cx + 10} ${hy} q 14 -3 20 1 q -8 4 -20 2 Z" fill="${t.band}" ${o} stroke-linejoin="round"/>`;
-        break;
-      default: /* sun hat */
-        hat = `
-          <path d="M ${cx - 17} ${hy - 3} L ${cx - 13} ${hy - 18} Q ${cx} ${hy - 23} ${cx + 13} ${hy - 18} L ${cx + 17} ${hy - 3} Z" fill="${t.hat}" ${o} stroke-linejoin="round"/>
-          <path d="M ${cx - 14} ${hy - 8} h 28" stroke="${t.band}" stroke-width="4.5"/>
-          <ellipse cx="${cx}" cy="${hy - 2}" rx="35" ry="7.5" fill="${t.hat}" ${o}/>`;
+      case 0: hat = `
+        <path d="M ${bx - 22} ${hy} L ${bx - 16} ${hy - 20} Q ${bx} ${hy - 27} ${bx + 16} ${hy - 20} L ${bx + 22} ${hy} Z" fill="${t.hat}" ${o}/>
+        <path d="M ${bx - 17} ${hy - 7} h 34" stroke="${t.band}" stroke-width="4.5"/>
+        <ellipse cx="${bx}" cy="${hy}" rx="30" ry="7" fill="${t.hat}" ${o}/>`; break;
+      case 1: hat = `
+        <circle cx="${bx}" cy="${hy - 24}" r="5" fill="${t.band}" ${o}/>
+        <path d="M ${bx - 24} ${hy} Q ${bx} ${hy - 44} ${bx + 24} ${hy} Z" fill="${t.hat}" ${o}/>
+        <rect x="${bx - 25}" y="${hy - 6}" width="50" height="10" rx="5" fill="${t.band}" ${o}/>`; break;
+      case 2: hat = `
+        <path d="M ${bx - 23} ${hy} Q ${bx - 19} ${hy - 19} ${bx + 2} ${hy - 18} Q ${bx + 21} ${hy - 17} ${bx + 23} ${hy} Z" fill="${t.hat}" ${o}/>
+        <path d="M ${bx + 10} ${hy} q 15 -3 22 1 q -9 5 -22 2 Z" fill="${t.band}" ${o}/>`; break;
+      default: hat = `
+        <path d="M ${bx - 18} ${hy - 3} L ${bx - 14} ${hy - 19} Q ${bx} ${hy - 24} ${bx + 14} ${hy - 19} L ${bx + 18} ${hy - 3} Z" fill="${t.hat}" ${o}/>
+        <path d="M ${bx - 15} ${hy - 8} h 30" stroke="${t.band}" stroke-width="5"/>
+        <ellipse cx="${bx}" cy="${hy - 2}" rx="37" ry="8" fill="${t.hat}" ${o}/>`;
     }
 
-    /* pose extras */
-    let extras = "";
-    if (pose === "sleep") {
-      extras = `
-        <text x="${cx + rx * 0.75}" y="${top - 2}" font-size="13" fill="#9a9082" class="chief-float f1">z</text>
-        <text x="${cx + rx * 0.95}" y="${top - 10}" font-size="16" fill="#9a9082" class="chief-float f2">z</text>
-        <text x="${cx + rx * 1.2}" y="${top - 20}" font-size="20" fill="#9a9082" class="chief-float f3">Z</text>`;
-    } else if (pose === "whistle") {
-      extras = `
-        <circle cx="${cx}" cy="${eyeY + eyeRY + 10}" r="3.4" fill="none" stroke="${INK.eye}" stroke-width="2.4"/>
-        <text x="${cx + rx * 0.8}" y="${eyeY - 4}" font-size="15" fill="${t.accent}" class="chief-float f1">&#9834;</text>
-        <text x="${cx + rx * 1.1}" y="${eyeY - 16}" font-size="13" fill="${t.accent}" class="chief-float f3">&#9835;</text>`;
-    } else if (pose === "attentive" && scene.snapLine) {
-      extras = `<text x="${cx + rx * 0.85}" y="${top - 8}" font-size="24" font-weight="700" fill="${t.accent}" class="chief-snap">!</text>`;
-    }
+    /* accents */
+    let accent = "";
+    const A = r.accent;
+    if (A === "zzz") accent = `
+      <text x="${bx + rx * 0.7}" y="${top - 2}" font-size="14" fill="#9a9082" class="chief-float f1">z</text>
+      <text x="${bx + rx * 0.95}" y="${top - 12}" font-size="18" fill="#9a9082" class="chief-float f2">z</text>
+      <text x="${bx + rx * 1.25}" y="${top - 24}" font-size="23" fill="#9a9082" class="chief-float f3">Z</text>`;
+    else if (A === "notes") accent = `
+      <text x="${bx + rx * 0.8}" y="${ey - 6}" font-size="17" fill="${t.accent}" class="chief-float f1">&#9834;</text>
+      <text x="${bx + rx * 1.1}" y="${ey - 20}" font-size="14" fill="${t.accent}" class="chief-float f3">&#9835;</text>`;
+    else if (A === "hearts") accent = [0, 1, 2].map((i) => `
+      <path d="M ${bx + (i - 1) * 26} ${top - 4 - i * 6} l -5 -6 a 3.2 3.2 0 0 1 5 -2.4 a 3.2 3.2 0 0 1 5 2.4 Z" fill="#c4476a" class="chief-float f${i + 1}"/>`).join("");
+    else if (A === "sparkle") accent = [[-rx, -ry * 0.4], [rx, -ry * 0.2], [rx * 0.3, -ry - 6]].map(([dx, dy], i) => `
+      <path d="M ${bx + dx} ${by + dy - 4} l 1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6 Z" fill="${t.accent}" class="chief-float f${i + 1}"/>`).join("");
+    else if (A === "rain") accent = [[-rx * 0.5, 0], [0, ry * 0.1], [rx * 0.5, 0]].map(([dx, dy], i) => `
+      <path d="M ${bx + dx} ${top - 8 + dy} q 3 6 0 9 q -3 -3 0 -9" fill="#5d7286" opacity="0.7" class="chief-float f${i + 1}"/>`).join("");
+    else if (A === "snap") accent = `<text x="${bx + rx * 0.85}" y="${top - 6}" font-size="26" font-weight="700" fill="${t.accent}" class="chief-snap">!</text>`;
 
-    /* activity prop, sat on the ground beside him */
-    const prop = isActivity && PROPS[scene.activity.prop]
-      ? `<g transform="translate(150 ${groundY - 1}) scale(1.45)">${PROPS[scene.activity.prop]()}</g>`
+    /* prop (activity), to his side, on the ground */
+    const prop = r.prop && PROPS[r.prop]
+      ? `<g transform="translate(${bx + rx + 34} ${groundY - 2}) scale(1.15)">${PROPS[r.prop]()}</g>`
       : "";
+
+    const idleCls = r.expr === "sleeping" ? "chief-breathe" : "chief-idle";
 
     return `
       <svg class="buddy-svg ${small ? "buddy-svg--small" : ""} ${reveal ? "buddy-svg--reveal" : ""}"
-           viewBox="0 0 200 200" role="img" aria-label="Your chief" data-buddy>
-        <ellipse cx="${isActivity ? 110 : cx}" cy="${groundY + 2}" rx="${isActivity ? 78 : rx * 1.25}" ry="6" fill="#000" opacity="0.28"/>
+           viewBox="0 0 200 230" role="img" aria-label="Your chief" data-buddy>
+        <ellipse cx="${bx}" cy="${groundY + 3}" rx="${rx * 1.2}" ry="6.5" fill="#000" opacity="0.3" class="chief-shadow"/>
         ${prop}
-        ${legs}
-        ${body}
-        ${eyes}
-        ${hat}
-        ${hands}
-        ${extras}
+        <g class="${idleCls}">
+          ${legs}
+          ${body}
+          ${face}
+          ${hat}
+          ${arms()}
+          ${accent}
+        </g>
       </svg>`;
   }
 
-  /* ---------- Reference-art sprites (the high-fidelity render path) ----------
-     The chief is drawn from the bundled reference sheets. A scene resolves to one
-     sprite; the generative SVG is the fallback when art can't load. ---------- */
+  /* ---------- Render layer & honest mood ----------
+     Primary renderer is the reference-art sprite set (the chief you designed),
+     made interactive: it breathes on idle, squishes when poked, spins on
+     double-tap, dangles when picked up, and swaps pose for mood/activity. The
+     animated generative SVG is the fallback (and an optional mode via the side
+     panel). A plugged-in render (Midjourney etc.) always wins. ---------- */
 
   const SPRITE_BASE = "assets/chief/";
+  // The shipped sprite set (from the reference sheets).
+  const SPRITE_NAMES = [
+    "sleeping","bored","walking","despair","sad","excited","lonely","inlove",
+    "fishing","hiking","camping","motorbikes","car","football","basketball","surfing",
+    "skateboarding","boxing","photography","cooking","reading","vinyl","brewing","offroad",
+    "golf","tennis","painting","writing","podcasting","dancing","language","travel",
+    "music","cycling","gaming","relaxing","drawing","guitar","woodwork","gardening",
+  ];
+  // Moods the art can show, low → high. Honest: it leans low when the lost side is heavy.
+  const MOOD_SET = ["despair", "sad", "lonely", "bored", "excited", "inlove"];
 
-  // Mood ladder, low → high, matched to the reference mood sheets. The chief's
-  // resting expression is chosen from here by his balance score (see progress engine).
-  const MOOD_LADDER = ["despair", "lonely", "sad", "slumped", "bored", "content", "fulfilled", "connected", "joy", "inlove"];
-
-  function moodSprite(score) {
-    const i = Math.min(MOOD_LADDER.length - 1, Math.max(0, Math.round(score * (MOOD_LADDER.length - 1))));
-    return MOOD_LADDER[i];
+  // The chief's current expression reflects honest recent weather — it can sit low
+  // when the lost column is heavy, and is NOT a one-way "settled" score.
+  function currentMood() {
+    const w = balanceWeights();
+    if (w.entries === 0) return "bored";
+    const t = w.tilt; // -1 (lost-heavy) .. +1 (gained-heavy)
+    if (t <= -0.5) return "despair";
+    if (t <= -0.25) return "sad";
+    if (t < 0.25) return "bored";
+    if (t < 0.55) return "excited";
+    return w.connection ? "inlove" : "excited";
   }
 
-  // Resolve a scene to a sprite name.
   function spriteFor(scene) {
-    if (!scene) return moodSprite(balanceScore());
-    switch (scene.pose) {
-      case "activity": return scene.activity && scene.activity.sprite;
+    const s = scene || {};
+    switch (s.pose) {
+      case "activity": return s.activity && s.activity.sprite;
       case "sleep": return "sleeping";
       case "walking": return "walking";
-      case "whistle": return "content";
+      case "whistle": return "bored";
       case "excited": return "excited";
-      case "joy": return "joy";
-      case "bored": return moodSprite(balanceScore());      // resting mood reflects progress
-      case "attentive": return balanceScore() >= 0.5 ? "content" : "walking";
-      default: return moodSprite(balanceScore());
+      case "joy": return "excited";
+      case "attentive": return "bored";
+      case "bored": return currentMood();
+      default: return SPRITE_NAMES.includes(s.pose) ? s.pose : currentMood();
     }
   }
 
-  // Render the chief. Priority: Midjourney render (if plugged in) → reference sprite → generative SVG.
   function buddyVisual(opts = {}, scene) {
     const b = state.buddy;
     if (!b) return "";
@@ -419,17 +565,18 @@
     if (b.imageUrl) {
       return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your chief" data-buddy draggable="false" />`;
     }
-    if (!b.useSvg) {
-      const name = spriteFor(scene) || moodSprite(balanceScore());
-      // onerror falls back to the generative SVG so the prototype never shows a broken image
+    if (b.useSprite !== false) {        // reference art is the default
+      let name = spriteFor(scene);
+      if (!SPRITE_NAMES.includes(name)) name = "bored";
       return `<img class="${cls} chief-sprite" src="${SPRITE_BASE}${name}.png" alt="Your chief — ${name}" data-buddy draggable="false"
-                   onerror="this.outerHTML=window.__chiefSvgFallback ? window.__chiefSvgFallback() : ''" />`;
+                   onerror="this.onerror=null;this.outerHTML=window.__chiefSvgFallback ? window.__chiefSvgFallback() : ''" />`;
     }
-    return chiefSVG(b.config, scene || { pose: "attentive" }, opts);
+    return chiefSVG(b.config, scene, opts);
   }
 
-  // Exposed so a sprite that fails to load can swap itself for the SVG chief.
+  // Exposed so a failed sprite load swaps in the animated SVG chief.
   window.__chiefSvgFallback = () => state.buddy ? chiefSVG(state.buddy.config, { pose: "attentive" }, {}) : "";
+
 
   /* ----------------------------------------------------------
      Voice-first input — Web Speech API
@@ -1043,9 +1190,9 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       case "walking":
         return `${name}'s having a wander. No particular place to be, which is the point.`;
       case "bored": {
-        const s = balanceScore();
-        if (s < 0.35) return `${name}'s a bit flat today — same as your lost column lately. Early days.`;
-        if (s >= 0.7) return `${name} looks properly settled. Funny, so do your last few entries.`;
+        const t = balanceWeights().tilt;
+        if (t <= -0.3) return `${name}'s a bit flat today — your lost column's been heavy lately. That's honest, not a failing.`;
+        if (t >= 0.4) return `${name} looks lighter today. So do your last few gained entries.`;
         return `${name} is just standing about. He was like that when you got here.`;
       }
       default:
@@ -1097,21 +1244,29 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     return themes.filter((th) => th.keywords.some((k) => t.includes(k))).map((th) => th.id);
   }
 
-  // 0 (still raw, complaint-heavy) → 1 (settled, balanced). Heuristic, recency-weighted.
-  function balanceScore() {
+  // The Balance, measured honestly: lost and gained are weighed the SAME way —
+  // recent volume + how much each entry seems to carry. Neither side is "good".
+  // `tilt` is symmetric: negative = the lost side is heavier lately (entirely valid),
+  // positive = the gained side is. It is weather, not a score, and moves both ways.
+  function balanceWeights() {
     const es = state.entries;
-    if (!es.length) return 0.45;
-    const n = es.length;
-    const half = Math.max(1, Math.floor(n / 2));
-    const early = es.slice(0, half);
-    const recent = es.slice(-half);
-    const lostDen = (a) => a.reduce((s, e) => s + tagThemes(e.lost, LOST_THEMES).length, 0) / a.length;
-    const gainDen = (a) => a.reduce((s, e) => s + tagThemes(e.gained, GAINED_THEMES).length, 0) / a.length;
-    const lostDrop = lostDen(early) - lostDen(recent);
-    const gainRise = gainDen(recent) - gainDen(early);
-    let s = 0.5 + 0.26 * lostDrop + 0.26 * gainRise + 0.18 * gainDen(recent) - 0.16 * lostDen(recent);
-    s += Math.min(0.08, n * 0.004); // honest, sustained engagement earns a little confidence
-    return Math.max(0, Math.min(1, s));
+    if (!es.length) return { lost: 0, gained: 0, tilt: 0, entries: 0, connection: false };
+    const K = Math.min(es.length, 10);
+    const recent = es.slice(-K);
+    const intensity = (text, themes) => {
+      if (!text || !text.trim()) return 0;
+      const hits = tagThemes(text, themes).length;
+      return Math.min(1.4, 0.6 + 0.32 * hits + Math.min(0.4, text.trim().length / 120));
+    };
+    let lost = 0, gained = 0, conn = 0;
+    for (const e of recent) {
+      lost += intensity(e.lost, LOST_THEMES);
+      gained += intensity(e.gained, GAINED_THEMES);
+      if (tagThemes(e.gained, GAINED_THEMES).some((id) => id === "connection" || id === "partnership")) conn++;
+    }
+    const norm = (v) => Math.max(0, Math.min(1, (v / recent.length) / 1.2));
+    const L = norm(lost), G = norm(gained);
+    return { lost: L, gained: G, tilt: Math.max(-1, Math.min(1, G - L)), entries: es.length, connection: conn >= Math.max(2, K * 0.4) };
   }
 
   // Find the lost theme that's faded most and the gained theme that's risen most,
@@ -1146,25 +1301,41 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         risen = { theme: th, rise: g1 - g0, recent: g1, example: ex && ex.gained };
       }
     }
-    return { weeks, declined, risen, score: balanceScore(), entries: n };
+    return { weeks, declined, risen, tilt: balanceWeights().tilt, entries: n };
   }
 
-  // The welcome-back line: scripted from the report (Claude rewrites it live when connected).
+  // The welcome-back line. Honest by design: it reflects how a theme has CHANGED over
+  // time (which is real), and is just as willing to say "this is still hard" as
+  // "this has eased". It never frames a heavy lost column as failing.
   function progressGreeting() {
     const r = progressReport();
     if (!r) return null;
     const d = r.declined, g = r.risen;
+    // a specific lost theme genuinely eased — name the change, don't oversell it
     if (d && d.drop > 0 && d.example) {
-      const recentBit = d.recent === 0
-        ? `the last few weeks, not once`
-        : `lately, ${d.recent === 1 ? "just once" : "barely"}`;
-      const gainBit = g && g.example ? ` Meanwhile the gained side keeps turning up things like “${g.example}”.` : "";
-      return `${r.weeks} weeks ago, ${d.theme.label} was in your lost column most weeks — “${d.example}”. ${capitalise(recentBit)}.${gainBit}`;
+      const recentBit = d.recent === 0 ? "the last few weeks, not once" : "lately, less often";
+      const gainBit = g && g.example ? ` The gained side's been saying other things — “${g.example}”.` : "";
+      return `${r.weeks} weeks ago, ${d.theme.label} was in your lost column most weeks — “${d.example}”. ${capitalise(recentBit)}. Not gone. Quieter.${gainBit}`;
+    }
+    // a lost theme is STILL recurring — say so honestly, no false progress
+    if (d && d.recent >= 2 && d.example) {
+      return `${capitalise(d.theme.label)} is still in your lost column most weeks — “${d.example}”. That's allowed. You're not behind, you're in it.`;
     }
     if (g && g.example && g.recent > 0) {
-      return `Quietly, the gained column is doing the talking now — “${g.example}”. That wasn't there when you started.`;
+      return `The gained column's started saying things it couldn't at the start — “${g.example}”. Both columns still run. That's the point.`;
     }
     return null;
+  }
+
+  // Honest one-line read of where the Balance sits this stretch — leans either way.
+  function balanceRead(w) {
+    const t = w.tilt;
+    if (w.entries === 0) return "Nothing weighed yet. Put a day down and the Balance starts to show.";
+    if (t <= -0.45) return "Heavy on the lost side this stretch. Some weeks just are — nothing here needs fixing.";
+    if (t <= -0.18) return "Leaning lost lately. That's honest. Keep putting it down.";
+    if (t < 0.18) return "Pretty even right now. Both true at once.";
+    if (t < 0.5) return "The gained side's carrying a bit more this stretch.";
+    return "Gained's overflowing lately. Enjoy it — it won't always, and that's fine too.";
   }
 
   const capitalise = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
@@ -1175,10 +1346,12 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     const name = state.buddy?.name || "your chief";
     const out = [];
     if (r && r.declined && r.declined.drop > 0) {
-      out.push(`You've barely mentioned missing ${r.declined.theme.label} lately. Quietly, that's huge.`);
+      out.push(`${capitalise(r.declined.theme.label)} has come up less lately. Worth a look at where you started.`);
+    } else if (r && r.declined && r.declined.recent >= 2) {
+      out.push(`${capitalise(r.declined.theme.label)}'s still heavy this week. It's allowed to be. Put today down anyway.`);
     }
     if (r && r.risen && r.risen.example) {
-      out.push(`Your gained column's filling up — “${r.risen.example}”. Worth a look back at week one.`);
+      out.push(`The gained column said something new — “${r.risen.example}”. Both columns still run.`);
     }
     out.push(`${capitalise(name)} hasn't seen you today. Thirty seconds: one lost, one gained.`);
     out.push(`Five minutes, chief. One thing lost, one thing gained. Then we're out of your way.`);
@@ -1201,7 +1374,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     },
     show(title, body) {
       if (!Notify.supported() || Notification.permission !== "granted") return false;
-      const mood = state.buddy && !state.buddy.useSvg ? SPRITE_BASE + moodSprite(balanceScore()) + ".png" : undefined;
+      const mood = state.buddy && state.buddy.useSprite ? SPRITE_BASE + currentMood() + ".png" : undefined;
       try { new Notification(title, { body, icon: mood, badge: mood }); return true; } catch (e) { return false; }
     },
   };
@@ -1466,17 +1639,12 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     const obs = pick(observeLines(), new Date().getDate() + state.entries.length);
     const ins = insight();
     const welcome = progressGreeting();
-    const score = balanceScore();
-    const pct = Math.round(score * 100);
 
     const welcomeCard = welcome ? `
       <div class="card card--accent">
         <p class="card__kicker">Welcome back, chief</p>
         <p class="card__body" id="welcome-line">${esc(welcome)}</p>
-        <div class="balance-meter" aria-label="Your balance, ${pct}%">
-          <div class="balance-meter__fill" style="width:${pct}%"></div>
-        </div>
-        <p class="micro">Where you are on the way to feeling like yourself again. It only moves when you're honest.</p>
+        <p class="micro">Not a score. A mirror — both columns still run, and that's the point.</p>
       </div>` : "";
 
     const checkinCard = done ? `
@@ -1554,10 +1722,29 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     const gainCol = es.map((e) => `
       <div class="entry entry--gained">${esc(e.gained)}<time>${fmtShort(e.iso)}</time></div>`).join("");
 
+    // Honest weigh: two sides, each filling to its real recent weight. Lost is allowed
+    // to be the heavier side — nothing here trends "up". Not a score; a mirror.
+    const w = balanceWeights();
+    const lostH = Math.round(8 + w.lost * 92);
+    const gainH = Math.round(8 + w.gained * 92);
+    const lean = w.tilt < -0.1 ? "leans lost" : w.tilt > 0.1 ? "leans gained" : "fairly even";
+
     return `
       <div class="screen" style="padding-top:10px">
         <h2 class="home-greeting">The Balance</h2>
         <p class="micro" style="margin-top:2px">Never perfectly balanced. That would be dishonest.</p>
+        <div class="weigh" aria-label="This stretch ${lean}">
+          <div class="weigh__col">
+            <div class="weigh__track"><div class="weigh__fill weigh__fill--lost" style="height:${lostH}%"></div></div>
+            <span class="weigh__tag checkin-side--lost">Lost</span>
+          </div>
+          <div class="weigh__fulcrum"></div>
+          <div class="weigh__col">
+            <div class="weigh__track"><div class="weigh__fill weigh__fill--gained" style="height:${gainH}%"></div></div>
+            <span class="weigh__tag checkin-side--gained">Gained</span>
+          </div>
+        </div>
+        <p class="balance-read">${esc(balanceRead(w))}</p>
         ${ins ? `
         <div class="card" style="margin-top:16px">
           <p class="card__kicker">Noticed</p>
@@ -1616,6 +1803,8 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       svg.classList.remove("is-poked");
       void svg.getBoundingClientRect(); // restart animation
       svg.classList.add("is-poked");
+      // drop the class once the squish finishes so idle breathing resumes
+      svg.addEventListener("animationend", () => svg.classList.remove("is-poked"), { once: true });
       pokes++;
       react(POKE_LINES, pokes + new Date().getMinutes());
     };
@@ -1876,15 +2065,22 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     if (mjFeedback) mjFeedback.textContent = "Back to the reference-art chief.";
   });
 
-  // Render mode toggle (reference sprites ↔ generative SVG)
+  // Render mode toggle (reference art ↔ generative SVG). Reference art is the default.
   const toggleRender = document.getElementById("toggle-render");
-  if (toggleRender) toggleRender.addEventListener("click", () => {
-    if (!state.buddy) return;
-    state.buddy.useSvg = !state.buddy.useSvg;
-    toggleRender.textContent = state.buddy.useSvg ? "Use reference art" : "Use generative SVG";
-    save();
-    render();
-  });
+  if (toggleRender) {
+    const syncLabel = () => {
+      const svgMode = state && state.buddy && state.buddy.useSprite === false;
+      toggleRender.textContent = svgMode ? "Use reference art" : "Use generative SVG";
+    };
+    toggleRender.addEventListener("click", () => {
+      if (!state.buddy) return;
+      state.buddy.useSprite = state.buddy.useSprite === false ? true : false;
+      save();
+      render();
+      syncLabel();
+    });
+    syncLabel();
+  }
 
   // Progress & notifications
   const enableNotify = document.getElementById("enable-notify");

@@ -518,27 +518,66 @@ img.buddy-svg {
   user-select: none;
 }
 
-/* Reference-art sprite: keep it crisp, sized like the SVG chief */
+/* Reference-art sprite: crisp, sized like the SVG chief, and gently alive on idle */
 img.chief-sprite {
   object-fit: contain;
   object-position: center bottom;
   image-rendering: auto;
-  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.35));
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,0.4));
+  transform-origin: 50% 100%;
+  animation: chief-breathe 3.6s ease-in-out infinite;
 }
 
-/* ---------- Balance meter (progress) ---------- */
-.balance-meter {
-  height: 8px;
-  border-radius: 99px;
-  background: #2a2319;
-  overflow: hidden;
-  margin: 4px 0 2px;
+@keyframes chief-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-4px) scale(1.015); }
 }
-.balance-meter__fill {
-  height: 100%;
-  border-radius: 99px;
-  background: linear-gradient(90deg, #8a6d4f, var(--accent) 70%, #f2a050);
-  transition: width 0.8s cubic-bezier(0.3, 1, 0.4, 1);
+
+@media (prefers-reduced-motion: reduce) {
+  img.chief-sprite { animation: none; }
+}
+
+/* ---------- The Balance: honest two-sided weigh ---------- */
+.weigh {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 18px;
+  height: 132px;
+  margin: 20px 0 6px;
+}
+.weigh__col { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 64px; }
+.weigh__track {
+  width: 100%;
+  height: 110px;
+  border-radius: 12px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.weigh__fill {
+  width: 100%;
+  border-radius: 0 0 11px 11px;
+  transition: height 0.85s cubic-bezier(0.3, 1, 0.4, 1);
+}
+.weigh__fill--lost   { background: var(--lost); }
+.weigh__fill--gained { background: var(--gained); }
+.weigh__tag {
+  font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.13em;
+}
+.weigh__fulcrum {
+  width: 0; height: 0; align-self: flex-end; margin-bottom: 26px;
+  border-left: 9px solid transparent; border-right: 9px solid transparent;
+  border-bottom: 13px solid var(--ink-faint);
+}
+.balance-read {
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin: 2px 8px 0;
 }
 
 /* ---------- Buddy handling: grab, dangle, drop, spin ---------- */
