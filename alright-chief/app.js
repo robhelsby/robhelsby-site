@@ -565,7 +565,7 @@
     if (b.imageUrl) {
       return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your chief" data-buddy draggable="false" />`;
     }
-    if (b.useSprite !== false) {        // reference art is the default
+    if (b.useSprite === true) {        // reference photo art is opt-in; the drawn chief is default
       let name = spriteFor(scene);
       if (!SPRITE_NAMES.includes(name)) name = "bored";
       return `<img class="${cls} chief-sprite" src="${SPRITE_BASE}${name}.png" alt="Your chief — ${name}" data-buddy draggable="false"
@@ -1024,6 +1024,37 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     }).catch(() => { insightInFlight = false; });
   }
 
+  const clamp01 = (v) => Math.max(0, Math.min(1, typeof v === "number" ? v : 0));
+
+  // Let Claude judge how MEANINGFUL each side of each entry genuinely is, and store the
+  // weights on the entry (e.lw / e.gw). The Balance then reflects significance, not
+  // keyword counts or length. Runs once per entry; scripted heuristic until then.
+  let weighInFlight = false;
+  function maybeWeighEntries() {
+    if (!LLM.enabled() || weighInFlight) return;
+    const todo = state.entries.filter((e) => typeof e.lw !== "number").slice(-10);
+    if (!todo.length) return;
+    weighInFlight = true;
+    const list = todo.map((e, i) => `${i + 1}. lost: "${(e.lost || "").replace(/"/g, "'")}" | gained: "${(e.gained || "").replace(/"/g, "'")}"`).join("\n");
+    LLM.ask(
+      `You weigh a new dad's daily ledger. For each entry, judge how emotionally MEANINGFUL the lost item and the gained item genuinely are to his sense of self, his family, and his transition into fatherhood. Judge depth and significance — NOT length, and NOT whether it sounds positive. A profound loss can far outweigh a trivial gain, and a small gain can outweigh a minor gripe. Score the lost item 0.0–1.0 and the gained item 0.0–1.0, independently.
+Return ONLY a JSON array, one object per entry in order: [{"lost":0.0,"gained":0.0}, ...]
+
+${list}`,
+      500
+    ).then((txt) => {
+      weighInFlight = false;
+      let arr;
+      try { arr = JSON.parse((txt.match(/\[[\s\S]*\]/) || [])[0]); } catch (e) { return; }
+      if (!Array.isArray(arr)) return;
+      todo.forEach((e, i) => {
+        if (arr[i] && typeof arr[i] === "object") { e.lw = clamp01(arr[i].lost); e.gw = clamp01(arr[i].gained); }
+      });
+      save();
+      render();
+    }).catch(() => { weighInFlight = false; });
+  }
+
   /* ----------------------------------------------------------
      Avatar pipeline — Midjourney
      Midjourney has no public API, so the pipeline is:
@@ -1244,29 +1275,44 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     return themes.filter((th) => th.keywords.some((k) => t.includes(k))).map((th) => th.id);
   }
 
-  // The Balance, measured honestly: lost and gained are weighed the SAME way —
-  // recent volume + how much each entry seems to carry. Neither side is "good".
-  // `tilt` is symmetric: negative = the lost side is heavier lately (entirely valid),
-  // positive = the gained side is. It is weather, not a score, and moves both ways.
+  // Heuristic significance of one side of an entry (0..1), used until the LLM has
+  // judged it. Deliberately NOT biased toward either column.
+  function heuristicIntensity(text, themes) {
+    if (!text || !text.trim()) return 0;
+    const hits = tagThemes(text, themes).length;
+    return Math.min(1, 0.42 + 0.2 * hits + Math.min(0.34, text.trim().length / 170));
+  }
+
+  // How much each side of an entry actually weighs. When Claude is connected it judges
+  // the genuine MEANING of the lost and gained items (e.lw / e.gw, 0..1 each); otherwise
+  // the heuristic stands in. A profound loss can outweigh a small gain, and vice versa.
+  function entryWeight(e) {
+    return {
+      lost: typeof e.lw === "number" ? e.lw : heuristicIntensity(e.lost, LOST_THEMES),
+      gained: typeof e.gw === "number" ? e.gw : heuristicIntensity(e.gained, GAINED_THEMES),
+      judged: typeof e.lw === "number",
+    };
+  }
+
+  // The Balance, measured honestly: lost and gained are weighed the SAME way and by how
+  // much each entry genuinely means (LLM-judged when available). `tilt` is symmetric:
+  // negative = the lost side is heavier lately (entirely valid), positive = the gained
+  // side is. It is weather, not a score, and moves both ways.
   function balanceWeights() {
     const es = state.entries;
-    if (!es.length) return { lost: 0, gained: 0, tilt: 0, entries: 0, connection: false };
+    if (!es.length) return { lost: 0, gained: 0, tilt: 0, entries: 0, connection: false, judged: false };
     const K = Math.min(es.length, 10);
     const recent = es.slice(-K);
-    const intensity = (text, themes) => {
-      if (!text || !text.trim()) return 0;
-      const hits = tagThemes(text, themes).length;
-      return Math.min(1.4, 0.6 + 0.32 * hits + Math.min(0.4, text.trim().length / 120));
-    };
-    let lost = 0, gained = 0, conn = 0;
+    let lost = 0, gained = 0, conn = 0, judged = false;
     for (const e of recent) {
-      lost += intensity(e.lost, LOST_THEMES);
-      gained += intensity(e.gained, GAINED_THEMES);
+      const w = entryWeight(e);
+      lost += w.lost;
+      gained += w.gained;
+      if (w.judged) judged = true;
       if (tagThemes(e.gained, GAINED_THEMES).some((id) => id === "connection" || id === "partnership")) conn++;
     }
-    const norm = (v) => Math.max(0, Math.min(1, (v / recent.length) / 1.2));
-    const L = norm(lost), G = norm(gained);
-    return { lost: L, gained: G, tilt: Math.max(-1, Math.min(1, G - L)), entries: es.length, connection: conn >= Math.max(2, K * 0.4) };
+    const L = Math.min(1, lost / recent.length), G = Math.min(1, gained / recent.length);
+    return { lost: L, gained: G, tilt: Math.max(-1, Math.min(1, G - L)), entries: es.length, connection: conn >= Math.max(2, K * 0.4), judged };
   }
 
   // Find the lost theme that's faded most and the gained theme that's risen most,
@@ -1691,6 +1737,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     on("[data-act=reset-inline]", resetPrototype);
     wireBuddyInteractions();
     maybeGenerateInsight();
+    maybeWeighEntries();
     // Claude rewrites the welcome-back line live when connected
     const r = progressReport();
     if (r && LLM.enabled() && document.getElementById("welcome-line")) {
@@ -1745,6 +1792,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
           </div>
         </div>
         <p class="balance-read">${esc(balanceRead(w))}</p>
+        <p class="micro" style="text-align:center">${w.judged ? "Weighed by how much each entry actually means — not by which column it's in." : LLM.enabled() ? "Weighing each entry by meaning…" : "Connect Claude to weigh each entry by how much it genuinely means."}</p>
         ${ins ? `
         <div class="card" style="margin-top:16px">
           <p class="card__kicker">Noticed</p>
@@ -2069,12 +2117,12 @@ Write one observation in the Alright Chief voice that connects the lost and gain
   const toggleRender = document.getElementById("toggle-render");
   if (toggleRender) {
     const syncLabel = () => {
-      const svgMode = state && state.buddy && state.buddy.useSprite === false;
-      toggleRender.textContent = svgMode ? "Use reference art" : "Use generative SVG";
+      const spriteMode = state && state.buddy && state.buddy.useSprite === true;
+      toggleRender.textContent = spriteMode ? "Use the drawn chief" : "Use reference photo art";
     };
     toggleRender.addEventListener("click", () => {
       if (!state.buddy) return;
-      state.buddy.useSprite = state.buddy.useSprite === false ? true : false;
+      state.buddy.useSprite = state.buddy.useSprite === true ? false : true;
       save();
       render();
       syncLabel();
