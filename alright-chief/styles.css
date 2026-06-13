@@ -518,6 +518,29 @@ img.buddy-svg {
   user-select: none;
 }
 
+/* Reference-art sprite: keep it crisp, sized like the SVG chief */
+img.chief-sprite {
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: auto;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.35));
+}
+
+/* ---------- Balance meter (progress) ---------- */
+.balance-meter {
+  height: 8px;
+  border-radius: 99px;
+  background: #2a2319;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+.balance-meter__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #8a6d4f, var(--accent) 70%, #f2a050);
+  transition: width 0.8s cubic-bezier(0.3, 1, 0.4, 1);
+}
+
 /* ---------- Buddy handling: grab, dangle, drop, spin ---------- */
 
 .buddy-holder {

@@ -27,11 +27,12 @@ Mapped to the product shape in the workshop brief:
    (baby's age, first/second, who's at home), then the pivot to three genuinely personal
    questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
    text fallback (see below).
-2. **Character generation — the chief.** A generative mascot drawn to the house reference:
-   bean-shaped matte-black body, big white oval eyes, purple mitten hands, stubby legs in
-   chunky shoes, always in a hat. The silhouette is fixed; variation lives in height,
-   roundness, hat style (bucket / beanie / flat cap / sun hat) and clothing theme. Named by
-   the user; "spin up another" re-rolls.
+2. **Character — the chief.** Rendered from the **actual reference art** (background-keyed
+   sprites in `assets/chief/`): bean-shaped matte-black body, white oval eyes, purple mitten
+   hands, hatted. 22 sprites — a mood ladder (despair → content → in love) and nine hobbies.
+   A generative SVG version is the fallback (toggle in the side panel) and powers the
+   Midjourney-prompt path. See `RENDER_PIPELINE.md` for the production options (Rive / WebGL /
+   SDXL) and why a 3D game engine is the wrong tool for this flat 2D style.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
    Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
@@ -45,7 +46,17 @@ Mapped to the product shape in the workshop brief:
    to pick him up by the scruff — he dangles and sways, then drops back with a bounce.
 6. **Insights.** After a few entries the app starts reflecting the ledger back —
    "a mirror, not a notification."
-7. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
+7. **Progress — the transition made visible.** A progress engine tags every ledger entry by
+   theme and tracks how the lost-column complaints (missing nights out, sleep, training, time
+   to himself) fade while the gained-column reflections (connection, patience, presence,
+   purpose, partnership) grow. This drives three things: a **welcome-back message** on the
+   Today screen that quantifies the shift ("Six weeks ago *going out* was in your lost column
+   most weeks — lately, not once. Meanwhile the gained side keeps turning up things like…"),
+   a **balance meter**, and **push notifications** (Web Notifications API; enable + fire a
+   nudge from the side panel). The chief's resting **mood sprite** is chosen by the same
+   balance score — he literally looks more settled as the dad becomes more balanced. Claude
+   rewrites the welcome line and nudges live when connected.
+8. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
 
 ## Voice-first input
 

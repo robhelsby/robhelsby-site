@@ -213,35 +213,29 @@
       <path d="M 2 0 L 2 -5 Q 10 -8 16 -4 L 21 -1 Q 22 0 20 0 Z" fill="#b05a3c" stroke="${INK.line}" stroke-width="2.2" stroke-linejoin="round"/>`,
   };
 
-  /* ---------- Activities the chief can learn from what the dad tells the app ---------- */
+  /* ---------- Activities the chief can learn from what the dad tells the app ----------
+     Each maps to a reference-art sprite (assets/chief/<sprite>.png). The `prop` is the
+     fallback drawn on the SVG chief when sprite art can't load. ---------- */
 
   const ACTIVITIES = [
-    { id: "gym", prop: "dumbbell", doing: "mid gym-session", quip: "Uninterrupted, and all. Your gym session, technically.",
-      keywords: ["gym", "weights", "workout", "lifting", "deadlift", "crossfit"] },
-    { id: "football", prop: "football", doing: "having a kickabout", quip: "First touch needs work. So did yours.",
-      keywords: ["football", "five-a-side", "five a side", "footy", "kickabout", "match"] },
-    { id: "cycling", prop: "bike", doing: "out on the bike", quip: "Your long route. No punctures yet.",
-      keywords: ["bike", "cycling", "cycle", "ride", "riding"] },
-    { id: "music", prop: "vinyl", doing: "deep in the records", quip: "Filed exactly how you left them.",
-      keywords: ["music", "gig", "gigs", "record", "records", "vinyl", "band", "guitar", "dj"] },
-    { id: "pint", prop: "pint", doing: "having a quiet pint", quip: "He got you one in. It's going flat.",
-      keywords: ["pub", "pint", "beer", "brewery", "ale", "lads"] },
-    { id: "film", prop: "tv", doing: "finishing a film in one sitting", quip: "Start to finish. He'll spoil the ending.",
-      keywords: ["film", "movie", "cinema", "tv", "telly", "series", "netflix"] },
-    { id: "gaming", prop: "controller", doing: "getting a few rounds in", quip: "Your save file's safe with him.",
-      keywords: ["gaming", "video game", "playstation", "xbox", "console", "games"] },
-    { id: "reading", prop: "book", doing: "more than two pages deep", quip: "He's past the bit where you fell asleep.",
-      keywords: ["reading", "read a book", "book", "books", "novel"] },
-    { id: "fishing", prop: "fishing", doing: "down at the water", quip: "Nothing's biting. He doesn't mind.",
-      keywords: ["fishing", "fish"] },
-    { id: "coffee", prop: "coffee", doing: "on a proper coffee", quip: "Drinking it while it's hot. Imagine.",
-      keywords: ["coffee", "espresso", "flat white", "barista"] },
-    { id: "golf", prop: "golf", doing: "on the back nine", quip: "Still playing off your handicap.",
-      keywords: ["golf"] },
-    { id: "cooking", prop: "pan", doing: "cooking something slow", quip: "Nobody's grabbing his leg.",
-      keywords: ["cooking", "cook", "baking", "kitchen", "bbq", "barbecue"] },
-    { id: "running", prop: "trainers", doing: "out on a run", quip: "Your pace. Uphill. Showing off.",
-      keywords: ["running", "run", "parkrun", "jog", "jogging", "marathon"] },
+    { id: "music", sprite: "vinyl", prop: "vinyl", doing: "back in the records", quip: "Filed exactly how you left them.",
+      keywords: ["music", "gig", "gigs", "record", "records", "vinyl", "band", "guitar", "dj", "album", "albums", "spotify"] },
+    { id: "gaming", sprite: "gamer", prop: "controller", doing: "getting a few rounds in", quip: "Your save file's safe with him.",
+      keywords: ["gaming", "video game", "video games", "playstation", "xbox", "console", "games", "fifa"] },
+    { id: "fishing", sprite: "fisher", prop: "fishing", doing: "down at the water", quip: "Nothing's biting. He doesn't mind.",
+      keywords: ["fishing", "fish", "angling", "carp", "fly fishing"] },
+    { id: "coffee", sprite: "coffee", prop: "coffee", doing: "grinding a proper coffee", quip: "Drinking it while it's hot. Imagine.",
+      keywords: ["coffee", "espresso", "flat white", "barista", "beans", "cafetiere"] },
+    { id: "pint", sprite: "brewer", prop: "pint", doing: "tending the home-brew", quip: "He got a batch on. It's nearly ready.",
+      keywords: ["pub", "pint", "beer", "brewery", "brewing", "ale", "lads", "homebrew", "home brew"] },
+    { id: "gardening", sprite: "gardener", prop: "pan", doing: "out in the garden", quip: "Tomatoes are coming along. Yours.",
+      keywords: ["garden", "gardening", "allotment", "plants", "growing", "veg", "vegetables"] },
+    { id: "mechanic", sprite: "mechanic", prop: "controller", doing: "elbow-deep in the engine", quip: "He'll have it running by the weekend.",
+      keywords: ["motorbike", "motorcycle", "car", "cars", "mechanic", "engine", "garage", "tinkering"] },
+    { id: "drone", sprite: "drone", prop: "controller", doing: "flying the drone", quip: "Got the landing down. Mostly.",
+      keywords: ["drone", "drones", "flying", "rc", "quadcopter"] },
+    { id: "astronomy", sprite: "astronomer", prop: "golf", doing: "out under the stars", quip: "Found something. He'll show you.",
+      keywords: ["astronomy", "stars", "stargazing", "telescope", "space", "planets"] },
   ];
 
   // Everything the dad has told the app — onboarding plus both ledger columns —
@@ -386,16 +380,56 @@
       </svg>`;
   }
 
-  // Render the chief: Midjourney image if one has been plugged in, else the generative SVG.
+  /* ---------- Reference-art sprites (the high-fidelity render path) ----------
+     The chief is drawn from the bundled reference sheets. A scene resolves to one
+     sprite; the generative SVG is the fallback when art can't load. ---------- */
+
+  const SPRITE_BASE = "assets/chief/";
+
+  // Mood ladder, low → high, matched to the reference mood sheets. The chief's
+  // resting expression is chosen from here by his balance score (see progress engine).
+  const MOOD_LADDER = ["despair", "lonely", "sad", "slumped", "bored", "content", "fulfilled", "connected", "joy", "inlove"];
+
+  function moodSprite(score) {
+    const i = Math.min(MOOD_LADDER.length - 1, Math.max(0, Math.round(score * (MOOD_LADDER.length - 1))));
+    return MOOD_LADDER[i];
+  }
+
+  // Resolve a scene to a sprite name.
+  function spriteFor(scene) {
+    if (!scene) return moodSprite(balanceScore());
+    switch (scene.pose) {
+      case "activity": return scene.activity && scene.activity.sprite;
+      case "sleep": return "sleeping";
+      case "walking": return "walking";
+      case "whistle": return "content";
+      case "excited": return "excited";
+      case "joy": return "joy";
+      case "bored": return moodSprite(balanceScore());      // resting mood reflects progress
+      case "attentive": return balanceScore() >= 0.5 ? "content" : "walking";
+      default: return moodSprite(balanceScore());
+    }
+  }
+
+  // Render the chief. Priority: Midjourney render (if plugged in) → reference sprite → generative SVG.
   function buddyVisual(opts = {}, scene) {
     const b = state.buddy;
     if (!b) return "";
+    const cls = `buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}`;
     if (b.imageUrl) {
-      const cls = `buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}`;
       return `<img class="${cls}" src="${esc(b.imageUrl)}" alt="Your chief" data-buddy draggable="false" />`;
+    }
+    if (!b.useSvg) {
+      const name = spriteFor(scene) || moodSprite(balanceScore());
+      // onerror falls back to the generative SVG so the prototype never shows a broken image
+      return `<img class="${cls} chief-sprite" src="${SPRITE_BASE}${name}.png" alt="Your chief — ${name}" data-buddy draggable="false"
+                   onerror="this.outerHTML=window.__chiefSvgFallback ? window.__chiefSvgFallback() : ''" />`;
     }
     return chiefSVG(b.config, scene || { pose: "attentive" }, opts);
   }
+
+  // Exposed so a sprite that fails to load can swap itself for the SVG chief.
+  window.__chiefSvgFallback = () => state.buddy ? chiefSVG(state.buddy.config, { pose: "attentive" }, {}) : "";
 
   /* ----------------------------------------------------------
      Voice-first input — Web Speech API
@@ -990,10 +1024,10 @@ Write one observation in the Alright Chief voice that connects the lost and gain
 
   function rollScene() {
     const learned = learnedActivities();
-    if (learned.length && Math.random() < 0.65) {
+    if (learned.length && Math.random() < 0.6) {
       return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)] };
     }
-    const idles = ["bored", "sleep", "whistle"];
+    const idles = ["bored", "sleep", "whistle", "walking"];
     return { pose: idles[Math.floor(Math.random() * idles.length)] };
   }
 
@@ -1006,8 +1040,14 @@ Write one observation in the Alright Chief voice that connects the lost and gain
         return `${name}'s asleep on his feet. Long day of doing your old Saturdays.`;
       case "whistle":
         return `${name}'s whistling something. Sounds suspiciously like the good old days.`;
-      case "bored":
+      case "walking":
+        return `${name}'s having a wander. No particular place to be, which is the point.`;
+      case "bored": {
+        const s = balanceScore();
+        if (s < 0.35) return `${name}'s a bit flat today — same as your lost column lately. Early days.`;
+        if (s >= 0.7) return `${name} looks properly settled. Funny, so do your last few entries.`;
         return `${name} is just standing about. He was like that when you got here.`;
+      }
       default:
         return scene.snapLine || `All yours, chief. He's paying attention.`;
     }
@@ -1023,6 +1063,170 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     lines.push(`${name} doesn't need feeding, winding or settling. He just notices when you check in.`);
     lines.push(`${name} has been doing the lost-column things all week. Vicariously, you're flying.`);
     return lines;
+  }
+
+  /* ----------------------------------------------------------
+     Progress engine — the transition, made visible
+     Tags every ledger entry by theme and tracks how the
+     lost-column complaints (missing freedom: nights out, sleep,
+     training, time to himself) fade, while the gained-column
+     reflections (connection, patience, presence, purpose,
+     partnership) grow. Drives the welcome message, the push
+     notifications, and the chief's resting mood.
+     ---------------------------------------------------------- */
+
+  const LOST_THEMES = [
+    { id: "going-out", label: "going out", keywords: ["going out", "night out", "nights out", "pub", "pint", "drinks", "mates", "lads", "party", "social", "spontaneous", "spontaneity"] },
+    { id: "sleep", label: "sleep", keywords: ["sleep", "lie-in", "lie in", "tired", "knackered", "exhausted", "rest", "nap", "shattered"] },
+    { id: "training", label: "training", keywords: ["gym", "training", "workout", "run", "running", "football", "five-a-side", "five a side", "fitness", "exercise", "ride", "bike"] },
+    { id: "time", label: "time to himself", keywords: ["time to myself", "me time", "headspace", "head straight", "quiet", "alone", "my own time", "space", "freedom"] },
+    { id: "hobbies", label: "his own things", keywords: ["hobby", "hobbies", "music", "gaming", "reading", "fishing", "film", "films", "records"] },
+  ];
+
+  const GAINED_THEMES = [
+    { id: "connection", label: "connection", keywords: ["smile", "smiled", "laugh", "laughed", "bond", "close", "cuddle", "chest", "love", "giggle"] },
+    { id: "patience", label: "patience", keywords: ["patience", "patient", "calm", "calmer", "slower", "steady", "steadier"] },
+    { id: "presence", label: "being present", keywords: ["present", "moment", "noticing", "noticed", "park", "walk", "here and now", "slow down"] },
+    { id: "purpose", label: "purpose", keywords: ["protect", "protecting", "provide", "worth", "matters", "reason", "proud", "something worth"] },
+    { id: "partnership", label: "teamwork at home", keywords: ["team", "sarah", "partner", "wife", "together", "shared", "us", "we"] },
+    { id: "perspective", label: "perspective", keywords: ["understand", "perspective", "care less", "priorities", "my dad", "own dad", "grown"] },
+  ];
+
+  function tagThemes(text, themes) {
+    const t = (text || "").toLowerCase();
+    return themes.filter((th) => th.keywords.some((k) => t.includes(k))).map((th) => th.id);
+  }
+
+  // 0 (still raw, complaint-heavy) → 1 (settled, balanced). Heuristic, recency-weighted.
+  function balanceScore() {
+    const es = state.entries;
+    if (!es.length) return 0.45;
+    const n = es.length;
+    const half = Math.max(1, Math.floor(n / 2));
+    const early = es.slice(0, half);
+    const recent = es.slice(-half);
+    const lostDen = (a) => a.reduce((s, e) => s + tagThemes(e.lost, LOST_THEMES).length, 0) / a.length;
+    const gainDen = (a) => a.reduce((s, e) => s + tagThemes(e.gained, GAINED_THEMES).length, 0) / a.length;
+    const lostDrop = lostDen(early) - lostDen(recent);
+    const gainRise = gainDen(recent) - gainDen(early);
+    let s = 0.5 + 0.26 * lostDrop + 0.26 * gainRise + 0.18 * gainDen(recent) - 0.16 * lostDen(recent);
+    s += Math.min(0.08, n * 0.004); // honest, sustained engagement earns a little confidence
+    return Math.max(0, Math.min(1, s));
+  }
+
+  // Find the lost theme that's faded most and the gained theme that's risen most,
+  // with real example phrases and a rough timeframe — the raw material for copy.
+  function progressReport() {
+    const es = state.entries;
+    if (es.length < 5) return null;
+    const n = es.length;
+    const half = Math.max(1, Math.floor(n / 2));
+    const early = es.slice(0, half);
+    const recent = es.slice(-half);
+    const weeks = Math.max(2, Math.round((new Date(es[n - 1].iso) - new Date(es[0].iso)) / 6048e5));
+
+    const countIn = (arr, id, themes, side) =>
+      arr.filter((e) => tagThemes(e[side], themes).includes(id)).length;
+
+    let declined = null;
+    for (const th of LOST_THEMES) {
+      const e0 = countIn(early, th.id, LOST_THEMES, "lost");
+      const e1 = countIn(recent, th.id, LOST_THEMES, "lost");
+      if (e0 - e1 > (declined ? declined.drop : 0)) {
+        const ex = early.find((e) => tagThemes(e.lost, LOST_THEMES).includes(th.id));
+        declined = { theme: th, drop: e0 - e1, early: e0, recent: e1, example: ex && ex.lost };
+      }
+    }
+    let risen = null;
+    for (const th of GAINED_THEMES) {
+      const g0 = countIn(early, th.id, GAINED_THEMES, "gained");
+      const g1 = countIn(recent, th.id, GAINED_THEMES, "gained");
+      if (g1 - g0 >= (risen ? risen.rise : 0)) {
+        const ex = [...recent].reverse().find((e) => tagThemes(e.gained, GAINED_THEMES).includes(th.id));
+        risen = { theme: th, rise: g1 - g0, recent: g1, example: ex && ex.gained };
+      }
+    }
+    return { weeks, declined, risen, score: balanceScore(), entries: n };
+  }
+
+  // The welcome-back line: scripted from the report (Claude rewrites it live when connected).
+  function progressGreeting() {
+    const r = progressReport();
+    if (!r) return null;
+    const d = r.declined, g = r.risen;
+    if (d && d.drop > 0 && d.example) {
+      const recentBit = d.recent === 0
+        ? `the last few weeks, not once`
+        : `lately, ${d.recent === 1 ? "just once" : "barely"}`;
+      const gainBit = g && g.example ? ` Meanwhile the gained side keeps turning up things like “${g.example}”.` : "";
+      return `${r.weeks} weeks ago, ${d.theme.label} was in your lost column most weeks — “${d.example}”. ${capitalise(recentBit)}.${gainBit}`;
+    }
+    if (g && g.example && g.recent > 0) {
+      return `Quietly, the gained column is doing the talking now — “${g.example}”. That wasn't there when you started.`;
+    }
+    return null;
+  }
+
+  const capitalise = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
+
+  // Short nudges for notifications, drawn from the same signal.
+  function progressNudges() {
+    const r = progressReport();
+    const name = state.buddy?.name || "your chief";
+    const out = [];
+    if (r && r.declined && r.declined.drop > 0) {
+      out.push(`You've barely mentioned missing ${r.declined.theme.label} lately. Quietly, that's huge.`);
+    }
+    if (r && r.risen && r.risen.example) {
+      out.push(`Your gained column's filling up — “${r.risen.example}”. Worth a look back at week one.`);
+    }
+    out.push(`${capitalise(name)} hasn't seen you today. Thirty seconds: one lost, one gained.`);
+    out.push(`Five minutes, chief. One thing lost, one thing gained. Then we're out of your way.`);
+    return out;
+  }
+
+  /* ---------- Push notifications (Web Notifications API) ----------
+     In production these are scheduled server-side via the Push API + a service
+     worker. In the prototype the same copy is delivered on demand (and a demo
+     nudge a few seconds after you enable them) so the behaviour is real. ---------- */
+
+  const Notify = {
+    supported: () => typeof window !== "undefined" && "Notification" in window,
+    permission: () => (Notify.supported() ? Notification.permission : "unsupported"),
+    async request() {
+      if (!Notify.supported()) return "unsupported";
+      const p = await Notification.requestPermission();
+      updateNotifyStatus();
+      return p;
+    },
+    show(title, body) {
+      if (!Notify.supported() || Notification.permission !== "granted") return false;
+      const mood = state.buddy && !state.buddy.useSvg ? SPRITE_BASE + moodSprite(balanceScore()) + ".png" : undefined;
+      try { new Notification(title, { body, icon: mood, badge: mood }); return true; } catch (e) { return false; }
+    },
+  };
+
+  function updateNotifyStatus() {
+    const el = document.getElementById("notify-status");
+    if (!el) return;
+    const p = Notify.permission();
+    el.textContent = p === "granted" ? "on" : p === "denied" ? "blocked in browser" : p === "unsupported" ? "not supported here" : "off";
+  }
+
+  // Fire a progress nudge now (and via Claude when connected).
+  async function sendProgressNudge() {
+    const title = "Alright Chief";
+    let body = pick(progressNudges(), Date.now());
+    if (LLM.enabled()) {
+      const r = progressReport();
+      try {
+        body = await LLM.ask(
+          `Write a single short push notification (max ~16 words) in the Alright Chief voice that nudges this new dad and hints at his progress.${r ? "\nProgress so far: " + JSON.stringify({ weeks: r.weeks, faded: r.declined && r.declined.theme.label, growing: r.risen && r.risen.theme.label }) : ""}`,
+          60
+        ) || body;
+      } catch (e) { /* scripted nudge */ }
+    }
+    return Notify.show(title, body);
   }
 
   function insight() {
@@ -1177,7 +1381,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     app.innerHTML = `
       <div class="screen" style="gap:16px">
         <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center">
-          <div class="buddy-stage">${buddyVisual({ reveal: true })}</div>
+          <div class="buddy-stage">${buddyVisual({ reveal: true }, { pose: "excited" })}</div>
           <h2 class="q-text" style="text-align:center">Your chief.<br/>No one else's.</h2>
           <p class="q-sub" style="text-align:center">He's listening to what you tell us — the Saturdays, the things you miss — and he'll keep them running while you're busy. The hat, the build, the colours: every chief comes out a bit different. What are you calling him?</p>
           <p class="micro" style="text-align:center">Prototype note: in production this is a Midjourney render in the house style, generated from your answers — the prompt's in the side panel.</p>
@@ -1209,7 +1413,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     const name = esc(state.buddy.name);
     app.innerHTML = `
       <div class="screen donescreen">
-        <div class="buddy-stage">${buddyVisual({ small: true })}</div>
+        <div class="buddy-stage">${buddyVisual({ small: true }, { pose: "joy" })}</div>
         <h2 class="q-text">Good name.<br/>${name} agrees.</h2>
         <p class="q-sub" style="max-width:280px">From here it's one entry a day. One thing lost, one thing gained. Not scored, not streaked, never more than five minutes. That's the deal.</p>
         <div class="screen-footer" style="width:100%">
@@ -1261,6 +1465,19 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     const name = esc(state.buddy?.name || "Your buddy");
     const obs = pick(observeLines(), new Date().getDate() + state.entries.length);
     const ins = insight();
+    const welcome = progressGreeting();
+    const score = balanceScore();
+    const pct = Math.round(score * 100);
+
+    const welcomeCard = welcome ? `
+      <div class="card card--accent">
+        <p class="card__kicker">Welcome back, chief</p>
+        <p class="card__body" id="welcome-line">${esc(welcome)}</p>
+        <div class="balance-meter" aria-label="Your balance, ${pct}%">
+          <div class="balance-meter__fill" style="width:${pct}%"></div>
+        </div>
+        <p class="micro">Where you are on the way to feeling like yourself again. It only moves when you're honest.</p>
+      </div>` : "";
 
     const checkinCard = done ? `
       <div class="card">
@@ -1280,6 +1497,7 @@ Write one observation in the Alright Chief voice that connects the lost and gain
       <div class="screen" style="padding-top:10px">
         <h2 class="home-greeting">${greeting()}</h2>
         <div class="home-stack">
+          ${welcomeCard}
           ${checkinCard}
           ${ins ? `
           <div class="card">
@@ -1305,6 +1523,14 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     on("[data-act=reset-inline]", resetPrototype);
     wireBuddyInteractions();
     maybeGenerateInsight();
+    // Claude rewrites the welcome-back line live when connected
+    const r = progressReport();
+    if (r && LLM.enabled() && document.getElementById("welcome-line")) {
+      swapIn("welcome-line", LLM.ask(
+        `Write the welcome-back line (1–2 sentences, Alright Chief voice) for a dad opening the app. Reflect his progress so he can see how far he's come. Data: ${JSON.stringify({ weeks: r.weeks, fadingComplaint: r.declined && r.declined.theme.label, earlyExample: r.declined && r.declined.example, growing: r.risen && r.risen.theme.label, recentGain: r.risen && r.risen.example })}`,
+        140
+      ));
+    }
   }
 
   function balanceTab() {
@@ -1647,8 +1873,35 @@ Write one observation in the Alright Chief voice that connects the lost and gain
     delete state.buddy.imageUrl;
     save();
     render();
-    if (mjFeedback) mjFeedback.textContent = "Back to the generative SVG stand-in.";
+    if (mjFeedback) mjFeedback.textContent = "Back to the reference-art chief.";
   });
+
+  // Render mode toggle (reference sprites ↔ generative SVG)
+  const toggleRender = document.getElementById("toggle-render");
+  if (toggleRender) toggleRender.addEventListener("click", () => {
+    if (!state.buddy) return;
+    state.buddy.useSvg = !state.buddy.useSvg;
+    toggleRender.textContent = state.buddy.useSvg ? "Use reference art" : "Use generative SVG";
+    save();
+    render();
+  });
+
+  // Progress & notifications
+  const enableNotify = document.getElementById("enable-notify");
+  const sendNudge = document.getElementById("send-nudge");
+  if (enableNotify) enableNotify.addEventListener("click", async () => {
+    const p = await Notify.request();
+    if (p === "granted") {
+      Notify.show("Alright Chief", "Notifications on. We'll only ever nudge — never nag.");
+      // demo: a progress nudge a few seconds later so the behaviour is visible
+      setTimeout(() => { sendProgressNudge(); }, 6000);
+    }
+  });
+  if (sendNudge) sendNudge.addEventListener("click", async () => {
+    if (Notify.permission() !== "granted") { await Notify.request(); }
+    sendProgressNudge();
+  });
+  updateNotifyStatus();
 
   state = load();
   render();

@@ -45,13 +45,28 @@
       </div>
 
       <div class="stage-note__section">
-        <p class="stage-note__label">Avatar pipeline (Midjourney)</p>
-        <p>The buddy's art direction is a Midjourney prompt built from the dad's own answers. The in-app SVG creature is the live stand-in.</p>
-        <button type="button" id="copy-mj">Copy Midjourney prompt</button>
-        <input id="mj-url" type="text" placeholder="Paste Midjourney image URL" autocomplete="off" />
+        <p class="stage-note__label">Progress &amp; notifications</p>
+        <p>Welcome messages and push notifications reflect the dad's transition back to balance, drawn from how his ledger changes over time. Status: <strong id="notify-status">off</strong></p>
         <div class="stage-note__row">
-          <button type="button" id="apply-mj">Use as buddy</button>
-          <button type="button" id="clear-mj">Back to SVG</button>
+          <button type="button" id="enable-notify">Enable notifications</button>
+          <button type="button" id="send-nudge">Send a progress nudge</button>
+        </div>
+        <p class="stage-note__hint">Real builds schedule these server-side (Push API + service worker); here they fire on demand, plus a demo nudge ~6s after enabling.</p>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Character render</p>
+        <p>The chief is drawn from the reference art (bundled sprites — the high-fidelity path). See <code>RENDER_PIPELINE.md</code> for the production options (Rive / WebGL / SDXL).</p>
+        <div class="stage-note__row">
+          <button type="button" id="toggle-render">Use generative SVG</button>
+        </div>
+        <p class="stage-note__label" style="margin-top:14px">Avatar pipeline (Midjourney)</p>
+        <p>A bespoke prompt in the house style, built from the dad's answers. Or plug a render straight in.</p>
+        <button type="button" id="copy-mj">Copy Midjourney prompt</button>
+        <input id="mj-url" type="text" placeholder="Paste a rendered image URL" autocomplete="off" />
+        <div class="stage-note__row">
+          <button type="button" id="apply-mj">Use as chief</button>
+          <button type="button" id="clear-mj">Clear</button>
         </div>
         <p class="stage-note__hint" id="mj-feedback"></p>
       </div>
