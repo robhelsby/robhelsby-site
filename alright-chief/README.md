@@ -35,7 +35,11 @@ Mapped to the product shape in the workshop brief:
    and drowsy drooping if you ignore him. **Free-form handling**: poke him (head, belly and
    toes react differently), stroke him slowly to pet (hearts), wiggle to tickle, double-tap
    to spin, pick him up by the scruff and dangle him — or **launch him** and he flies,
-   bounces off the floor and walls with squash-and-stretch, and picks himself up. Tail wags
+   bounces off the floor and walls with squash-and-stretch, and picks himself up. His room is
+   the **whole screen** — a viewport-sized physics world with walls at the screen edges, so
+   he can be carried and thrown anywhere without clipping. **Jointed limbs**: arms and legs
+   are live two-segment chains that go ragdoll when he's carried (hanging toward true
+   down), flail mid-air, and ease back on landing. Tail wags
    faster the more you play with him. Scenes (sleeping, keep-ups, raving, hobbies with
    props) run inside the same rig; tap to snap him out. Old saves migrate automatically.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.

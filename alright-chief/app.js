@@ -1600,16 +1600,13 @@ ${list}`,
       </div>`;
   }
 
-  // His room: just him, and one line. No title, no tips — the handling is
-  // there to be discovered.
+  // His room: the whole screen is his. Just him, and one floating line.
   function buddyTab() {
     if (!buddyScene) buddyScene = rollScene();
     return `
-      <div class="screen" style="text-align:center">
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">
-          <div class="buddy-stage"><div class="buddy-holder" data-holder>${buddyVisual({}, buddyScene)}</div></div>
-          <p class="buddy-line" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
-        </div>
+      <div class="buddy-room">
+        <div class="buddy-holder buddy-holder--room" data-holder>${buddyVisual({}, buddyScene)}</div>
+        <p class="buddy-line buddy-line--float" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
       </div>`;
   }
 
@@ -1638,6 +1635,7 @@ ${list}`,
     if (drawnMode && Chief && Chief.Rig) {
       let lastReact = 0;
       chiefRig = new Chief.Rig(holder, state.buddy.config, buddyScene || { pose: "attentive" }, {
+        onResize: () => render(),
         onSnap: () => {
           buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()) };
           render();

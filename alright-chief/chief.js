@@ -243,14 +243,15 @@
         <path d="M ${x - 6 * sc} ${y + 4 * sc} q ${6 * sc} ${5 * sc} ${12 * sc} 0" stroke="${INK.mittLo}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
     }
     const armPath = (x1, y1, mx, my, x2, y2) => `
-      <path d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${INK.line}" stroke-width="16.5" fill="none" stroke-linecap="round"/>
-      <path d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${hood.a}" stroke-width="11.5" fill="none" stroke-linecap="round"/>`;
+      <path class="p-seg p-seg-ink" d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${INK.line}" stroke-width="16.5" fill="none" stroke-linecap="round"/>
+      <path class="p-seg p-seg-top" d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${hood.a}" stroke-width="11.5" fill="none" stroke-linecap="round"/>`;
+    // limb groups carry their rest geometry so the rig can re-pose them live
     const arm = (side, x1, y1, mx, my, x2, y2, mitX, mitY, sc) =>
-      `<g class="p-arm${side}" data-px="${x1}" data-py="${y1}">${armPath(x1, y1, mx, my, x2, y2)}${mitten(mitX !== undefined ? mitX : x2, mitY !== undefined ? mitY : y2 + 3, sc || 1)}</g>`;
+      `<g class="p-arm${side} p-limb" data-ax="${x1}" data-ay="${y1}" data-cx="${mx}" data-cy="${my}" data-ex="${x2}" data-ey="${y2}" data-side="${side === "L" ? -1 : 1}">${armPath(x1, y1, mx, my, x2, y2)}<g class="p-end">${mitten(mitX !== undefined ? mitX : x2, mitY !== undefined ? mitY : y2 + 3, sc || 1)}</g></g>`;
 
     const legPath = (x, fromY, toY, bend = 0) => `
-      <path d="M ${x} ${fromY} Q ${x + bend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK.line}" stroke-width="17" fill="none" stroke-linecap="round"/>
-      <path d="M ${x} ${fromY} Q ${x + bend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK.pants}" stroke-width="12" fill="none" stroke-linecap="round"/>`;
+      <path class="p-seg p-seg-ink" d="M ${x} ${fromY} Q ${x + bend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK.line}" stroke-width="17" fill="none" stroke-linecap="round"/>
+      <path class="p-seg p-seg-top" d="M ${x} ${fromY} Q ${x + bend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK.pants}" stroke-width="12" fill="none" stroke-linecap="round"/>`;
     function sneaker(x, y, flip = 1) {
       return `
         <path d="M ${x - 10 * flip} ${y - 9} q ${14 * flip} -3 ${20 * flip} 3 q ${3 * flip} 3 ${1 * flip} 6 l ${-24 * flip} 0 Z" fill="${INK.shoe}" ${o}/>
@@ -258,7 +259,7 @@
         <path d="M ${x - 4 * flip} ${y - 8} l ${3 * flip} 6 M ${x + 1 * flip} ${y - 8.5} l ${3 * flip} 6" stroke="${hat.a}" stroke-width="2" stroke-linecap="round"/>`;
     }
     const leg = (side, x, bend, flip) =>
-      `<g class="p-leg${side}" data-px="${x}" data-py="${HIP}">${legPath(x, HIP, GROUND - 14, bend || 0)}${sneaker(x + (flip === -1 ? -1 : 3), GROUND - 2, flip || 1)}</g>`;
+      `<g class="p-leg${side} p-limb" data-ax="${x}" data-ay="${HIP}" data-cx="${x + (bend || 0)}" data-cy="${(HIP + GROUND - 14) / 2}" data-ex="${x}" data-ey="${GROUND - 14}" data-side="${side === "L" ? -1 : 1}">${legPath(x, HIP, GROUND - 14, bend || 0)}<g class="p-end">${sneaker(x + (flip === -1 ? -1 : 3), GROUND - 2, flip || 1)}</g></g>`;
 
     function tailSVG(bx, by, dir = 1) {
       return `
@@ -431,12 +432,23 @@
       overlay = accents;
     }
 
-    return `
-      <svg class="buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}"
-           viewBox="0 0 220 240" role="img" aria-label="Your chief" data-buddy data-uid="${uid}">
+    // opts.world = {vw, vh, ox, oy}: embed the 220x240 art in a room-sized
+    // viewBox so the chief has the whole screen to be dragged and thrown in.
+    const world = opts.world;
+    const vw = world ? world.vw : 220;
+    const vh = world ? world.vh : 240;
+    const ox = world ? world.ox : 0;
+    const oy = world ? world.oy : 0;
+    const body_ = `
         ${scenery}
         <g class="p-root"><g class="p-squash"><g class="p-figure">${figure}</g></g></g>
-        ${overlay}
+        ${overlay}`;
+    return `
+      <svg class="buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""} ${world ? "buddy-svg--room" : ""}"
+           viewBox="0 0 ${vw.toFixed(0)} ${vh.toFixed(0)}" ${world ? 'preserveAspectRatio="xMidYMax meet"' : ""}
+           role="img" aria-label="Your chief" data-buddy data-uid="${uid}"
+           data-vw="${vw.toFixed(0)}" data-vh="${vh.toFixed(0)}" data-ox="${ox.toFixed(0)}" data-oy="${oy.toFixed(0)}">
+        ${world ? `<g transform="translate(${ox.toFixed(0)} ${oy.toFixed(0)})">${body_}</g>` : body_}
       </svg>`;
   }
 
@@ -462,7 +474,21 @@
       this.cb = cb;
       this.destroyed = false;
 
-      host.innerHTML = buildChief(config, this.scene);
+      // the room: a viewport-sized world so he can roam the whole screen.
+      // Art is 220x240; size it to ~45% of the room height, centred, on the floor.
+      const rect = host.getBoundingClientRect ? host.getBoundingClientRect() : { width: 220, height: 240 };
+      const hw = rect.width || 220, hh = rect.height || 240;
+      const vh = 240 / 0.45;
+      const vw = Math.max(240, vh * (hw / Math.max(1, hh)));
+      this.world = { vw, vh, ox: (vw - 220) / 2, oy: vh - 240 - 6 };
+      // physics bounds for the root offset (px,py): walls and how high the hand can lift him
+      this.bounds = {
+        minX: -(this.world.ox + 20),
+        maxX: this.world.ox + 20,
+        minY: -(this.world.oy - 6),
+      };
+
+      host.innerHTML = buildChief(config, this.scene, { world: this.world });
       this.svg = host.querySelector("svg");
       this.grab = {
         root: this.svg.querySelector(".p-root"),
@@ -478,6 +504,25 @@
         eyeL: this.svg.querySelector(".p-eyeL"),
         eyeR: this.svg.querySelector(".p-eyeR"),
       };
+      // jointed limbs (arms + legs) the loop can re-pose
+      this.limbs = [];
+      const collect = (sel, isArm) => {
+        const g = this.svg.querySelector(sel);
+        if (!g || !g.dataset || g.dataset.ax === undefined) return;
+        this.limbs.push({
+          g, isArm,
+          ax: +g.dataset.ax, ay: +g.dataset.ay,
+          cx0: +g.dataset.cx, cy0: +g.dataset.cy,
+          ex0: +g.dataset.ex, ey0: +g.dataset.ey,
+          side: +g.dataset.side || 1,
+          phase: Math.random() * Math.PI * 2,
+          segs: (g.querySelectorAll ? Array.from(g.querySelectorAll(".p-seg")) : []),
+          end: g.querySelector ? g.querySelector(".p-end") : null,
+        });
+      };
+      collect(".p-armL", true); collect(".p-armR", true);
+      collect(".p-legL", false); collect(".p-legR", false);
+      this.limbT = 0;   // 0 = posed at rest, 1 = full ragdoll
 
       /* physics state */
       this.px = 0; this.py = 0;       // root offset
@@ -510,6 +555,16 @@
       this.lastTap = -1e9;
 
       this._bind();
+      // rebuild the room on viewport changes (rotation, resize)
+      if (typeof window !== "undefined" && window.addEventListener) {
+        this._onResize = () => {
+          clearTimeout(this._resizeT);
+          this._resizeT = setTimeout(() => {
+            if (!this.destroyed && this.cb.onResize) this.cb.onResize();
+          }, 200);
+        };
+        window.addEventListener("resize", this._onResize);
+      }
       this._lastT = (typeof performance !== "undefined" ? performance.now() : Date.now());
       this._raf = null;
       this._tickBound = () => this._frame();
@@ -518,6 +573,9 @@
 
     destroy() {
       this.destroyed = true;
+      if (this._onResize && typeof window !== "undefined" && window.removeEventListener) {
+        window.removeEventListener("resize", this._onResize);
+      }
       if (this._raf) (typeof cancelAnimationFrame !== "undefined" ? cancelAnimationFrame : clearTimeout)(this._raf);
     }
 
@@ -525,7 +583,7 @@
     _svgPoint(e) {
       const r = this.svg.getBoundingClientRect();
       const w = r.width || 1, h = r.height || 1;
-      return { x: (e.clientX - r.left) / w * 220, y: (e.clientY - r.top) / h * 240 };
+      return { x: (e.clientX - r.left) / w * this.world.vw, y: (e.clientY - r.top) / h * this.world.vh };
     }
 
     /* ---------- gestures ---------- */
@@ -582,8 +640,11 @@
           }
         }
         if (this.mode === "held") {
-          this.tx = p.x - 110 + this.holdDX;
-          this.ty = p.y - 84 + this.holdDY;
+          // hold target relative to home, clamped inside the room so he can
+          // never be dragged out of view
+          const B = this.bounds;
+          this.tx = Math.max(B.minX, Math.min(B.maxX, p.x - (this.world.ox + 110) + this.holdDX));
+          this.ty = Math.max(B.minY, Math.min(0, p.y - (this.world.oy + 84) + this.holdDY));
         }
       });
 
@@ -597,7 +658,7 @@
           const speed = Math.hypot(pr.vx, pr.vy);
           if (speed > 620) {
             this.mode = "airborne";
-            this.vx = pr.vx * 0.028; this.vy = pr.vy * 0.028;
+            this.vx = Math.max(-60, Math.min(60, pr.vx * 0.022)); this.vy = Math.max(-58, Math.min(30, pr.vy * 0.045));
             this._react("throw");
           } else {
             this.mode = "grounded";
@@ -617,7 +678,7 @@
               this.cb.onSnap();
               return;
             }
-            this._poke("tap", pr.y0);
+            this._poke("tap", pr.y0 - this.world.oy - this.py);
           }
         }
       };
@@ -720,17 +781,20 @@
         this.sy += (1.1 - this.sy) * Math.min(1, dt * 8);
         this.sx += (0.93 - this.sx) * Math.min(1, dt * 8);
       } else if (this.mode === "airborne") {
-        this.vy += 640 * dt;             // gravity
-        this.px += this.vx * dt * 60;
-        this.py += this.vy * dt * 60;
-        this.rot += this.vx * dt * 26;
-        // walls
-        if (this.px < -86) { this.px = -86; this.vx = Math.abs(this.vx) * 0.6; }
-        if (this.px > 86) { this.px = 86; this.vx = -Math.abs(this.vx) * 0.6; }
+        this.vy += 115 * dt;             // gravity — floaty, cartoon arcs
+        this.px += this.vx * dt * 32;
+        this.py += this.vy * dt * 32;
+        this.rot += this.vx * dt * 16;
+        // walls of the room
+        if (this.px < this.bounds.minX) { this.px = this.bounds.minX; this.vx = Math.abs(this.vx) * 0.6; }
+        if (this.px > this.bounds.maxX) { this.px = this.bounds.maxX; this.vx = -Math.abs(this.vx) * 0.6; }
+        if (this.py < this.bounds.minY) { this.py = this.bounds.minY; this.vy = Math.abs(this.vy) * 0.5; }
         // floor
         if (this.py >= 0) {
           this.py = 0;
-          if (Math.abs(this.vy) > 2.4) {
+          // settle threshold must exceed one frame of gravity, or damping
+          // re-fills each frame and he micro-bounces forever
+          if (Math.abs(this.vy) > 115 * dt + 2.2) {
             this.vy = -Math.abs(this.vy) * 0.52;
             this.vx *= 0.72;
             this.sy = 0.72; this.sx = 1.24;   // impact squash
@@ -770,8 +834,10 @@
       /* --- eyes --- */
       // where's he looking? pointer if present, else idle wander
       if (this.pointer) {
-        this.lookTX = Math.max(-1, Math.min(1, (this.pointer.x - 110) / 70));
-        this.lookTY = Math.max(-1, Math.min(1, (this.pointer.y - 86) / 80));
+        const hx = this.world.ox + 110 + this.px;
+        const hy = this.world.oy + 84 + this.py;
+        this.lookTX = Math.max(-1, Math.min(1, (this.pointer.x - hx) / 90));
+        this.lookTY = Math.max(-1, Math.min(1, (this.pointer.y - hy) / 100));
       } else {
         this.wanderTimer -= dt;
         if (this.wanderTimer <= 0) {
@@ -799,6 +865,15 @@
         g.squash.setAttribute("transform",
           `translate(110 ${GROUND}) scale(${this.sx.toFixed(3)} ${(this.sy * breathe).toFixed(3)}) translate(-110 -${GROUND})`);
       }
+      /* --- jointed limbs: they go ragdoll when he's carried or thrown,
+             flail mid-air, and ease back to the pose on landing --- */
+      const limbTarget = (this.mode === "held" || this.mode === "airborne") ? 1 : 0;
+      this.limbT += (limbTarget - this.limbT) * Math.min(1, dt * (limbTarget ? 9 : 5));
+      if (this.limbs.length) {
+        if (this.limbT > 0.015) { this._poseLimbs(dt); this._limbsDirty = true; }
+        else if (this._limbsDirty) { this._restLimbs(); this._limbsDirty = false; }
+      }
+
       if (g.tail && this.scene.pose !== "sleep") {
         const bx = +g.tail.dataset.px || 140, by = +g.tail.dataset.py || 158;
         const wag = Math.sin(this.tailPhase) * (7 + this.energy * 9);
@@ -824,6 +899,41 @@
         const lift = Math.max(0, -this.py) / 120;
         g.shadow.setAttribute("opacity", String(Math.max(0.08, 0.32 - lift * 0.2)));
         g.shadow.setAttribute("transform", `translate(${(this.px * 0.7).toFixed(1)} 0) scale(${Math.max(0.5, 1 - lift * 0.45).toFixed(2)} 1)`);
+      }
+    }
+
+    _poseLimbs(dt) {
+      this._limbPhase = (this._limbPhase || 0) + dt * (this.mode === "airborne" ? 15 : 6.5);
+      const rotRad = -this.rot * Math.PI / 180;   // limbs hang toward world-down
+      const t = this.limbT;
+      const flail = this.mode === "airborne" ? 0.55 : 0.15;
+      const sway = Math.max(-0.5, Math.min(0.5, this.vx * 0.004));
+      for (const L of this.limbs) {
+        const len = Math.hypot(L.ex0 - L.ax, L.ey0 - L.ay);
+        const hang = Math.PI / 2 + rotRad + sway
+          + Math.sin(this._limbPhase + L.phase) * flail
+          + (L.isArm ? L.side * 0.14 : L.side * 0.05);
+        const dex = L.ax + Math.cos(hang) * len;
+        const dey = L.ay + Math.sin(hang) * len;
+        const ex = L.ex0 + (dex - L.ex0) * t;
+        const ey = L.ey0 + (dey - L.ey0) * t;
+        // knee/elbow bows perpendicular to the chain, with a little life
+        const mx = (L.ax + ex) / 2, my = (L.ay + ey) / 2;
+        const pang = Math.atan2(ey - L.ay, ex - L.ax) + Math.PI / 2;
+        const bow = (L.isArm ? 7.5 : 6) * L.side + Math.sin(this._limbPhase * 0.7 + L.phase) * 3.5;
+        const qx = (L.cx0 + (mx + Math.cos(pang) * bow - L.cx0) * t);
+        const qy = (L.cy0 + (my + Math.sin(pang) * bow - L.cy0) * t);
+        const d = `M ${L.ax} ${L.ay} Q ${qx.toFixed(1)} ${qy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+        for (const p of L.segs) p.setAttribute("d", d);
+        if (L.end) L.end.setAttribute("transform", `translate(${(ex - L.ex0).toFixed(1)} ${(ey - L.ey0).toFixed(1)})`);
+      }
+    }
+
+    _restLimbs() {
+      for (const L of this.limbs) {
+        const d = `M ${L.ax} ${L.ay} Q ${L.cx0} ${L.cy0} ${L.ex0} ${L.ey0}`;
+        for (const p of L.segs) p.setAttribute("d", d);
+        if (L.end) L.end.setAttribute("transform", "");
       }
     }
 
