@@ -27,17 +27,17 @@ Mapped to the product shape in the workshop brief:
    (baby's age, first/second, who's at home), then the pivot to three genuinely personal
    questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
    text fallback (see below).
-2. **Character — the chief.** A hand-built vector character to the reference direction:
-   shaggy matte-black fur, slightly dog-like with a scruffy **wagging tail**, grey hoodie,
-   purple mittens, chunky sneakers, and a hat (bucket/cap/beanie in green, purple, orange
-   or blue) with the cream "C" patch. Per-user variation in hat, colours, hoodie shade and
-   build. He is **genuinely animated** (SVG-native SMIL, works on iOS Safari): he breathes,
-   blinks and wags on idle, and lives full scene loops — asleep under a blanket with
-   drifting z's, **keep-ups with a football**, **dancing at a rave** between speakers and
-   pulsing lights, walking, plus prop scenes for the rest of his learned hobbies. All the
-   direct handling stays: poke-squish, double-tap spin, pick-up-by-the-scruff dangle.
-   His resting mood follows the honest Balance (he can look low; that's allowed).
-   `RENDER_PIPELINE.md` covers the production path (Rive) for game-quality animation.
+2. **Character — the chief.** A living creature, not an illustration: `chief.js` is a
+   dedicated character runtime — a structured SVG rig driven by a requestAnimationFrame
+   loop with spring physics, in the spirit of the 90s virtual-pet game Oddballz. **Detailed
+   eyes**: white sclera, dark pupils with dual highlights that **track your finger**,
+   expressive lids (bored half-lids, sad tilt, happy bottom-lids, heart-eyes), real blinks,
+   and drowsy drooping if you ignore him. **Free-form handling**: poke him (head, belly and
+   toes react differently), stroke him slowly to pet (hearts), wiggle to tickle, double-tap
+   to spin, pick him up by the scruff and dangle him — or **launch him** and he flies,
+   bounces off the floor and walls with squash-and-stretch, and picks himself up. Tail wags
+   faster the more you play with him. Scenes (sleeping, keep-ups, raving, hobbies with
+   props) run inside the same rig; tap to snap him out. Old saves migrate automatically.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
    Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
@@ -126,4 +126,5 @@ without the render.
 |---|---|
 | `index.html` | Phone frame + side panel |
 | `styles.css` | All styling (Bricolage Grotesque display / Inter body, dark warm palette) |
-| `app.js` | State, screens, generative buddy, LLM layer, Midjourney pipeline |
+| `chief.js` | The character runtime: SVG rig, eyes, physics, gestures, behaviour |
+| `app.js` | State, screens, Balance/progress engines, LLM layer, Midjourney pipeline |

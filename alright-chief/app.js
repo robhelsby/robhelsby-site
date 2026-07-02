@@ -117,133 +117,16 @@
      style and clothing theme; the silhouette never changes.
      ---------------------------------------------------------- */
 
-  /* ---------- Character palette (chief v2 — shaggy, dog-ish, hoodie-and-hat) ---------- */
-
-  // Kept for the activity props' line work.
-  const INK = {
-    body: "#211d27",
-    line: "#0b0a10",
-    rim: "#4a4356",
-    eye: "#f2eee6",
-    hand: "#7c5cbf",
-    handLine: "#3f2d68",
-    shoe: "#eeece6",
-    sole: "#b5b2ab",
-  };
-
-  const INK2 = {
-    line: "#0b0a10",
-    fur: "#191621",
-    furHi: "#39344a",
-    eye: "#f2eee6",
-    pants: "#3f3b49",
-    shoe: "#eeece6",
-    sole: "#b5b2ab",
-    mitt: "#7c5cbf",
-    mittLo: "#5d4396",
-    mittLine: "#3f2d68",
-  };
-
-  const HAT_COLS = [
-    { name: "green", a: "#55b04b", b: "#3c8a35" },
-    { name: "purple", a: "#7a5ec2", b: "#5c449c" },
-    { name: "orange", a: "#e8813a", b: "#c05f1e" },
-    { name: "blue", a: "#4f6fd8", b: "#3854b0" },
-  ];
-  const HAT_NAMES = ["bucket hat", "cap", "beanie"];
-  const HOODIES = [
-    { a: "#cfcdd6", b: "#aeacb9" },
-    { a: "#e9e7ec", b: "#c6c4cd" },
-    { a: "#b9b7c2", b: "#9896a4" },
-  ];
-
-  // shaggy closed outline around (x,y) radius r — fluffy, not spiky
-  function shaggyBlob(bx, by, r, rSeed, squashY = 1) {
-    const rand = mulberry32(rSeed);
-    const n = 22;
-    let d = "";
-    for (let i = 0; i <= n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const tuft = (i % 2 === 0 ? 1 : 0.9) + rand() * 0.08;
-      const rr = r * tuft;
-      const x = bx + Math.cos(a) * rr;
-      const y = by + Math.sin(a) * rr * squashY;
-      if (i === 0) d = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
-      else {
-        const pa = ((i - 0.5) / n) * Math.PI * 2;
-        const px = bx + Math.cos(pa) * r * 1.06;
-        const py = by + Math.sin(pa) * r * 1.06 * squashY;
-        d += ` Q ${px.toFixed(1)} ${py.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`;
-      }
-    }
-    return d + " Z";
-  }
-
-  function genBuddyConfig(seedStr) {
-    const rand = mulberry32(hashString(seedStr));
-    return {
-      chief: true,
-      v2: true,
-      seed: seedStr,
-      h: 0.94 + rand() * 0.12,
-      w: 0.95 + rand() * 0.12,
-      hat: Math.floor(rand() * 3),        // bucket | cap | beanie
-      hatCol: Math.floor(rand() * 4),     // green | purple | orange | blue
-      hoodie: Math.floor(rand() * 3),
-      furSeed: Math.floor(rand() * 9999),
-    };
-  }
-
-  /* ---------- Activity props (drawn at the chief's side, origin = ground) ---------- */
-
-  const PROPS = {
-    vinyl: () => `
-      <rect x="-22" y="-15" width="44" height="15" rx="2.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
-      <circle cx="-5" cy="-7.5" r="6.5" fill="#15121b" stroke="${INK.line}" stroke-width="2"/>
-      <circle cx="-5" cy="-7.5" r="1.8" fill="#c9a04a"/>
-      <path d="M 9 -11 l 6 4" stroke="#cfc8bb" stroke-width="2.2" stroke-linecap="round"/>`,
-    controller: () => `
-      <rect x="-18" y="-15" width="36" height="15" rx="7.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
-      <circle cx="8" cy="-9.5" r="2.4" fill="#c9a04a"/><circle cx="12" cy="-6" r="2.4" fill="#b05a3c"/>
-      <path d="M -11 -7.5 h 7 M -7.5 -11 v 7" stroke="#9a93a6" stroke-width="2.4" stroke-linecap="round"/>`,
-    fishing: () => `
-      <ellipse cx="6" cy="0" rx="22" ry="4" fill="#5d7286" opacity="0.45"/>
-      <path d="M -22 -4 L 16 -44" stroke="#8a6d4f" stroke-width="3.4" stroke-linecap="round"/>
-      <path d="M 16 -44 q 7 22 -3 38" stroke="#cfc8bb" stroke-width="1.8" fill="none"/>
-      <circle cx="13" cy="-8" r="2.6" fill="#b05a3c"/>`,
-    coffee: () => `
-      <rect x="-11" y="-17" width="22" height="17" rx="2.5" fill="#ece6da" stroke="${INK.line}" stroke-width="3"/>
-      <path d="M 11 -13 q 9 3 0 8" stroke="${INK.line}" stroke-width="3" fill="none"/>
-      <path d="M -4 -22 q 2.5 -4 0 -8" stroke="#9a9082" stroke-width="2.4" fill="none" stroke-linecap="round" class="chief-float f2"/>
-      <path d="M 4 -22 q -2.5 -4 0 -8" stroke="#9a9082" stroke-width="2.4" fill="none" stroke-linecap="round" class="chief-float f3"/>`,
-    pint: () => `
-      <path d="M -9 -26 L -6 0 L 6 0 L 9 -26 Z" fill="#c9802f" stroke="${INK.line}" stroke-width="3" stroke-linejoin="round"/>
-      <rect x="-10" y="-31" width="20" height="7" rx="3.5" fill="#f0ead9" stroke="${INK.line}" stroke-width="3"/>`,
-    plant: () => `
-      <rect x="-16" y="-12" width="32" height="12" rx="2" fill="#7e5a3c" stroke="${INK.line}" stroke-width="3"/>
-      <path d="M -8 -12 q -3 -14 2 -18 M 0 -12 q 0 -16 0 -20 M 8 -12 q 3 -14 -2 -18" stroke="#6f7d44" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-      <circle cx="-6" cy="-30" r="3" fill="#b05a3c"/><circle cx="8" cy="-30" r="3" fill="#c9a04a"/>`,
-    engine: () => `
-      <rect x="-18" y="-18" width="36" height="18" rx="2.5" fill="#3a3444" stroke="${INK.line}" stroke-width="3"/>
-      <circle cx="-6" cy="-9" r="5.5" fill="#5b5566" stroke="${INK.line}" stroke-width="2"/>
-      <rect x="4" y="-15" width="9" height="11" rx="1.5" fill="#5b5566" stroke="${INK.line}" stroke-width="2"/>`,
-    drone: () => `
-      <g class="chief-float f1">
-        <rect x="-9" y="-26" width="18" height="7" rx="2" fill="#3a3444" stroke="${INK.line}" stroke-width="2.5"/>
-        <path d="M -9 -23 L -20 -28 M 9 -23 L 20 -28" stroke="${INK.line}" stroke-width="2.5" stroke-linecap="round"/>
-        <ellipse cx="-20" cy="-28" rx="7" ry="2" fill="#9a93a6"/><ellipse cx="20" cy="-28" rx="7" ry="2" fill="#9a93a6"/>
-      </g>`,
-    telescope: () => `
-      <path d="M -14 -2 L 14 -30" stroke="#3a3444" stroke-width="7" stroke-linecap="round"/>
-      <circle cx="14" cy="-30" r="4" fill="#5d7286" stroke="${INK.line}" stroke-width="2"/>
-      <path d="M -14 -2 L -20 0 M -14 -2 L -8 0" stroke="${INK.line}" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="20" cy="-36" r="1.6" fill="#c9a04a" class="chief-float f2"/>
-      <circle cx="26" cy="-30" r="1.2" fill="#f4efe6" class="chief-float f3"/>`,
-  };
-
-  /* ---------- Activities the chief can learn from what the dad tells the app ----------
-     Each maps to a reference-art sprite (assets/chief/<sprite>.png). The `prop` is the
-     fallback drawn on the SVG chief when sprite art can't load. ---------- */
+  /* ---------- The character lives in chief.js (window.AlrightChief) ----------
+     chief.js owns how the chief is built, structured and behaves: the SVG rig,
+     detailed tracking eyes, spring physics (grab/throw/bounce), gesture
+     recognition (poke/pet/tickle/spin) and autonomous idle behaviour.
+     app.js only asks for renders and mounts the live Rig on the buddy tab. */
+  const Chief = window.AlrightChief;
+  const HAT_COLS = Chief.HAT_COLS;
+  const HAT_NAMES = Chief.HAT_NAMES;
+  function genBuddyConfig(seedStr) { return Chief.genConfig(seedStr); }
+  function chiefSVG(config, scene, opts) { return Chief.render(config, scene || { pose: "attentive" }, opts || {}); }
 
   const ACTIVITIES = [
     { id: "music", sprite: "music", anim: "rave", prop: "vinyl", doing: "front and centre at the rave", quip: "Someone's got to keep your gig legs going.",
@@ -318,315 +201,6 @@
     return ACTIVITIES.filter((a) =>
       a.keywords.some((k) => new RegExp(`\\b${k.replace(/[-\s]/g, "[-\\s]")}\\b`).test(sources)));
   }
-
-  /* ---------- Drawing the chief — shaggy, dog-ish, alive ----------
-     A hand-built vector character to the new reference: shaggy black head with
-     fur tufts and a wagging tail, hoodie, purple mittens, chunky sneakers, and
-     a hat with the C patch. Animation is SVG-native (SMIL) so it runs on iOS
-     Safari: breathing, blinking, tail wag, and full scene loops — sleeping
-     under a blanket, keep-ups with a football, dancing at a rave, walking.
-     Poses: bored | sleep | walking | keepups | rave | activity | sad | despair
-            | lonely | excited | inlove | attentive ---------- */
-
-  function chiefSVG(config, scene = { pose: "bored" }, opts = {}) {
-  const C = config;
-  const hat = HAT_COLS[C.hatCol % 4];
-  const hood = HOODIES[C.hoodie % 3];
-  const pose = scene.pose || "bored";
-  const o = `stroke="${INK2.line}" stroke-width="3.2" stroke-linejoin="round"`;
-  const anim = opts.anim !== false;
-
-  // layout
-  const cx = 110;
-  const groundY = 225;
-  const hipY = 168;
-  const headR = 34 * C.w;
-  const headCY = 84;
-
-  /* ---------- shared parts ---------- */
-  const patch = (px, py) => `
-    <rect x="${px - 6}" y="${py - 5}" width="12" height="10" rx="2.5" fill="#efeade" stroke="${INK2.line}" stroke-width="2"/>
-    <text x="${px}" y="${py + 3}" font-size="8" font-weight="700" text-anchor="middle" fill="#3a3630" font-family="sans-serif">C</text>`;
-
-  function hatSVG(hy) {
-    switch (C.hat % 3) {
-      case 0: /* bucket */ return `
-        <path d="M ${cx - 32} ${hy} L ${cx - 24} ${hy - 28} Q ${cx} ${hy - 38} ${cx + 24} ${hy - 28} L ${cx + 32} ${hy} Z" fill="${hat.a}" ${o}/>
-        <ellipse cx="${cx}" cy="${hy}" rx="42" ry="9.5" fill="${hat.a}" ${o}/>
-        <path d="M ${cx - 40} ${hy + 2.5} a 40 8.5 0 0 0 80 0" fill="${hat.b}" stroke="none" opacity="0.55"/>
-        ${patch(cx, hy - 17)}`;
-      case 1: /* cap, peak right */ return `
-        <path d="M ${cx - 33} ${hy + 3} Q ${cx - 34} ${hy - 28} ${cx} ${hy - 29} Q ${cx + 34} ${hy - 28} ${cx + 33} ${hy + 3} Z" fill="${hat.a}" ${o}/>
-        <path d="M ${cx + 22} ${hy - 4} q 26 -3 34 5 q -14 8 -35 4 Z" fill="${hat.b}" ${o}/>
-        <path d="M ${cx - 33} ${hy + 3} q 33 8 66 0" stroke="${INK2.line}" stroke-width="3" fill="none"/>
-        ${patch(cx, hy - 12)}`;
-      default: /* beanie */ return `
-        <path d="M ${cx - 32} ${hy + 3} Q ${cx} ${hy - 42} ${cx + 32} ${hy + 3} Z" fill="${hat.a}" ${o}/>
-        <rect x="${cx - 34}" y="${hy - 4}" width="68" height="13" rx="6.5" fill="${hat.b}" ${o}/>
-        ${patch(cx, hy + 2.5)}`;
-    }
-  }
-
-  // eyes: white ovals; kind = open|half|closed|happy|heart|low
-  function eyesSVG(kind, ex = cx, ey = headCY, blink = true) {
-    const dx = 16 * C.w, rx = 9 * C.w, ry = 12.5;
-    const eye = (sgn) => {
-      const x = ex + sgn * dx;
-      switch (kind) {
-        case "closed": return `<path d="M ${x - rx} ${ey} q ${rx} ${ry * 0.55} ${rx * 2} 0" stroke="${INK2.eye}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-        case "happy": return `<path d="M ${x - rx} ${ey + 3} q ${rx} ${-ry} ${rx * 2} 0" stroke="${INK2.eye}" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
-        case "heart": return `<path d="M ${x} ${ey + 7} l -7 -8 a 4.4 4.4 0 0 1 7 -3.4 a 4.4 4.4 0 0 1 7 3.4 Z" fill="#d4587a" stroke="${INK2.line}" stroke-width="2"/>`;
-        case "half": return `
-          <ellipse cx="${x}" cy="${ey}" rx="${rx}" ry="${ry}" fill="${INK2.eye}"/>
-          <path d="M ${x - rx - 1} ${ey - ry - 1} h ${rx * 2 + 2} v ${ry} h ${-(rx * 2 + 2)} Z" fill="${INK2.fur}"/>`;
-        case "low": return `
-          <ellipse cx="${x}" cy="${ey}" rx="${rx}" ry="${ry * 0.8}" fill="${INK2.eye}"/>
-          <path d="M ${x - rx - 1} ${ey - ry} h ${rx * 2 + 2} v ${ry * 0.75} h ${-(rx * 2 + 2)} Z" fill="${INK2.fur}"/>`;
-        default: return `
-          <ellipse cx="${x}" cy="${ey}" rx="${rx}" ry="${ry}" fill="${INK2.eye}">
-            ${anim && blink ? `<animate attributeName="ry" values="${ry};${ry};1.4;${ry};${ry}" keyTimes="0;0.9;0.94;0.97;1" dur="5.4s" repeatCount="indefinite"/>` : ""}
-          </ellipse>`;
-      }
-    };
-    return eye(-1) + eye(1);
-  }
-
-  function mitten(x, y, sc = 1) {
-    return `
-      <circle cx="${x - 8 * sc}" cy="${y + 3 * sc}" r="${5 * sc}" fill="${INK2.mitt}" stroke="${INK2.mittLine}" stroke-width="2.4"/>
-      <ellipse cx="${x}" cy="${y}" rx="${10.5 * sc}" ry="${11.5 * sc}" fill="${INK2.mitt}" stroke="${INK2.mittLine}" stroke-width="2.6"/>
-      <path d="M ${x - 6 * sc} ${y + 4 * sc} q ${6 * sc} ${5 * sc} ${12 * sc} 0" stroke="${INK2.mittLo}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-  }
-
-  // arm: ink underlay + hoodie sleeve on top
-  function arm(x1, y1, mx, my, x2, y2) {
-    return `
-      <path d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${INK2.line}" stroke-width="16.5" fill="none" stroke-linecap="round"/>
-      <path d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" stroke="${hood.a}" stroke-width="11.5" fill="none" stroke-linecap="round"/>`;
-  }
-
-  function leg(x, fromY, toY, kneeBend = 0) {
-    return `
-      <path d="M ${x} ${fromY} Q ${x + kneeBend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK2.line}" stroke-width="17" fill="none" stroke-linecap="round"/>
-      <path d="M ${x} ${fromY} Q ${x + kneeBend} ${(fromY + toY) / 2} ${x} ${toY}" stroke="${INK2.pants}" stroke-width="12" fill="none" stroke-linecap="round"/>`;
-  }
-
-  function sneaker(x, y, flip = 1) {
-    return `
-      <path d="M ${x - 10 * flip} ${y - 9} q ${14 * flip} -3 ${20 * flip} 3 q ${3 * flip} 3 ${1 * flip} 6 l ${-24 * flip} 0 Z" fill="${INK2.shoe}" ${o}/>
-      <path d="M ${x - 11 * flip} ${y} l ${25 * flip} 0 q ${2 * flip} 4 ${-2 * flip} 5 l ${-22 * flip} 0 q ${-3 * flip} -2 ${-1 * flip} -5 Z" fill="${INK2.sole}" stroke="${INK2.line}" stroke-width="2.4"/>
-      <path d="M ${x - 4 * flip} ${y - 8} l ${3 * flip} 6 M ${x + 1 * flip} ${y - 8.5} l ${3 * flip} 6" stroke="${hat.a}" stroke-width="2" stroke-linecap="round"/>`;
-  }
-
-  // shaggy tail — wags
-  function tail(bx, by, dir = 1) {
-    const wag = anim ? `<animateTransform attributeName="transform" type="rotate" values="-7 ${bx} ${by}; 9 ${bx} ${by}; -7 ${bx} ${by}" dur="1.4s" repeatCount="indefinite"/>` : "";
-    return `
-      <g>
-        ${wag}
-        <path d="M ${bx} ${by}
-                 q ${18 * dir} -6 ${26 * dir} -19
-                 l ${-6 * dir} 2 q ${7 * dir} -9 ${8 * dir} -17
-                 l ${-7 * dir} 4 q ${3 * dir} -8 ${0} -13
-                 q ${-11 * dir} 10 ${-16 * dir} 21
-                 q ${-5 * dir} 11 ${-7 * dir} 22 Z"
-              fill="${INK2.fur}" ${o}/>
-        <path d="M ${bx + 8 * dir} ${by - 14} q ${8 * dir} -8 ${11 * dir} -18" stroke="${INK2.furHi}" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.55"/>
-      </g>`;
-  }
-
-  // head: shaggy black blob + fur tufts + hat + eyes
-  function head(kind, hx = cx, hy = headCY, tilt = 0) {
-    const blob = shaggyBlob(hx, hy, headR, C.furSeed, 1.02);
-    const cheekL = `<path d="M ${hx - headR - 2} ${hy + 8} l -7 2 l 6 3 l -5 4 l 8 0 Z" fill="${INK2.fur}" stroke="${INK2.line}" stroke-width="2.4" stroke-linejoin="round"/>`;
-    const cheekR = `<path d="M ${hx + headR + 2} ${hy + 8} l 7 2 l -6 3 l 5 4 l -8 0 Z" fill="${INK2.fur}" stroke="${INK2.line}" stroke-width="2.4" stroke-linejoin="round"/>`;
-    return `
-      <g ${tilt ? `transform="rotate(${tilt} ${hx} ${hy})"` : ""}>
-        ${cheekL}${cheekR}
-        <path d="${blob}" fill="${INK2.fur}" ${o}/>
-        <path d="M ${hx - headR * 0.62} ${hy - headR * 0.5} Q ${hx - headR * 0.92} ${hy} ${hx - headR * 0.6} ${hy + headR * 0.5}" fill="none" stroke="${INK2.furHi}" stroke-width="2.4" stroke-linecap="round" opacity="0.6"/>
-        ${eyesSVG(kind, hx, hy + 2)}
-        ${hatSVG(hy - headR * 0.78)}
-      </g>`;
-  }
-
-  // hoodie torso
-  function torso(tx = cx, topY = 112, botY = 174) {
-    const w = 40 * C.w;
-    return `
-      <path d="M ${tx - w} ${botY}
-               Q ${tx - w - 4} ${topY + 10} ${tx - w * 0.55} ${topY}
-               Q ${tx} ${topY - 6} ${tx + w * 0.55} ${topY}
-               Q ${tx + w + 4} ${topY + 10} ${tx + w} ${botY}
-               Z" fill="${hood.a}" ${o}/>
-      <path d="M ${tx - w * 0.55} ${topY + 2} Q ${tx} ${topY + 14} ${tx + w * 0.55} ${topY + 2}" fill="none" stroke="${hood.b}" stroke-width="3" stroke-linecap="round"/>
-      <path d="M ${tx - 6} ${topY + 12} v 10 M ${tx + 6} ${topY + 12} v 10" stroke="${hood.b}" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M ${tx - w * 0.6} ${botY - 16} q ${w * 0.6} 10 ${w * 1.2} 0" fill="none" stroke="${hood.b}" stroke-width="2.6" stroke-linecap="round"/>`;
-  }
-
-  const shadow = (rx = 58) => `<ellipse cx="${cx}" cy="${groundY + 4}" rx="${rx}" ry="7" fill="#000" opacity="0.32"/>`;
-  const breathe = anim ? `<animateTransform attributeName="transform" type="translate" values="0 0; 0 -2.4; 0 0" dur="3.5s" repeatCount="indefinite"/>` : "";
-
-  /* ---------- poses ---------- */
-  let inner = "";
-
-  if (pose === "sleep") {
-    const Zs = [0, 1, 2].map((i) => `
-      <text x="${150 + i * 14}" y="150" font-size="${14 + i * 5}" fill="#8f8a99" font-family="sans-serif">z
-        <animate attributeName="y" values="155;128" dur="2.6s" begin="${-i * 0.85}s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;1;0" dur="2.6s" begin="${-i * 0.85}s" repeatCount="indefinite"/>
-      </text>`).join("");
-    inner = `
-      ${shadow(72)}
-      <rect x="38" y="205" width="150" height="17" rx="8" fill="#dedbe2" ${o}/>
-      <g>
-        ${anim ? `<animateTransform attributeName="transform" type="translate" values="0 0; 0 -1.6; 0 0" dur="3.2s" repeatCount="indefinite"/>` : ""}
-        <path d="${shaggyBlob(74, 190, 30, C.furSeed, 0.94)}" fill="${INK2.fur}" ${o}/>
-        ${eyesSVG("closed", 74, 192)}
-        <path d="M 96 176 Q 150 162 182 186 Q 188 200 180 206 L 96 206 Q 88 192 96 176 Z" fill="#5d9a55" ${o}/>
-        <path d="M 100 184 q 34 -8 72 6" stroke="#477a41" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      </g>
-      ${tail(184, 200, 1)}
-      ${Zs}`;
-  } else if (pose === "keepups") {
-    const kick = anim ? `<animateTransform attributeName="transform" type="rotate" values="0 128 ${hipY}; 38 128 ${hipY}; 0 128 ${hipY}" keyTimes="0;0.5;1" dur="0.85s" repeatCount="indefinite"/>` : "";
-    const ballBounce = anim ? `<animateTransform attributeName="transform" type="translate" values="0 0; 0 -54; 0 0" keyTimes="0;0.5;1" dur="0.85s" repeatCount="indefinite"/>` : "";
-    const spin = anim ? `<animateTransform attributeName="transform" type="rotate" values="0 163 ${groundY - 13}; 360 163 ${groundY - 13}" dur="1.7s" repeatCount="indefinite"/>` : "";
-    inner = `
-      ${shadow(64)}
-      ${tail(78, 158, -1)}
-      ${leg(96, hipY, groundY - 14)}
-      ${sneaker(97, groundY - 2)}
-      <g>${kick}
-        ${leg(128, hipY, groundY - 16, 10)}
-        ${sneaker(131, groundY - 4)}
-      </g>
-      <g>${breathe}
-        ${torso()}
-        ${arm(84, 126, 66, 145, 72, 162)}${mitten(72, 165)}
-        ${arm(136, 126, 154, 142, 150, 158)}${mitten(151, 160)}
-        ${head("open")}
-      </g>
-      <g>${ballBounce}
-        <g>${spin}
-          <circle cx="163" cy="${groundY - 13}" r="13" fill="#f5f2ea" ${o}/>
-          <path d="M 163 ${groundY - 19} l 5 3.6 -1.9 6 -6.2 0 -1.9 -6 Z" fill="#2b2833"/>
-          <path d="M 163 ${groundY - 19} l 0 -4.5 M 168 ${groundY - 15.5} l 4.5 -1.8 M 166.2 ${groundY - 9.5} l 2.6 3.6 M 159.8 ${groundY - 9.5} l -2.6 3.6 M 158 ${groundY - 15.5} l -4.5 -1.8" stroke="#2b2833" stroke-width="1.7"/>
-        </g>
-      </g>`;
-  } else if (pose === "rave") {
-    const bounce = anim ? `<animateTransform attributeName="transform" type="translate" values="0 0; 0 -9; 0 0" dur="0.5s" repeatCount="indefinite"/>` : "";
-    const speaker = (sx) => `
-      <rect x="${sx - 17}" y="${groundY - 62}" width="34" height="62" rx="4" fill="#2c2834" ${o}/>
-      <circle cx="${sx}" cy="${groundY - 44}" r="10" fill="#413c4d" stroke="${INK2.line}" stroke-width="2.6"/>
-      <circle cx="${sx}" cy="${groundY - 44}" r="4" fill="#191621"/>
-      <circle cx="${sx}" cy="${groundY - 16}" r="6.5" fill="#413c4d" stroke="${INK2.line}" stroke-width="2.4"/>`;
-    const lights = [["#59d24d", 60, 60, 0.5], ["#b06ee0", 96, 42, 0.62], ["#e8813a", 128, 44, 0.44], ["#ff6fa8", 162, 62, 0.56]].map(([col, lx, ly, dur]) => `
-      <circle cx="${lx}" cy="${ly}" r="5.5" fill="${col}">
-        <animate attributeName="opacity" values="0.15;1;0.15" dur="${dur}s" repeatCount="indefinite"/>
-      </circle>`).join("");
-    inner = `
-      ${shadow(78)}
-      ${speaker(34)}${speaker(186)}
-      ${tail(140, 158, 1)}
-      <g>${bounce}
-        ${leg(98, hipY, groundY - 14, -6)}
-        ${leg(122, hipY, groundY - 14, 6)}
-        ${sneaker(97, groundY - 2, -1)}
-        ${sneaker(123, groundY - 2)}
-        ${torso()}
-        ${arm(84, 124, 60, 102, 52, 84)}${mitten(51, 79)}
-        ${arm(136, 124, 160, 102, 168, 84)}${mitten(169, 79)}
-        ${head("happy")}
-      </g>
-      ${lights}`;
-  } else if (pose === "walking") {
-    const legSwing = (x, ph) => anim ? `<animateTransform attributeName="transform" type="rotate" values="-16 ${x} ${hipY}; 16 ${x} ${hipY}; -16 ${x} ${hipY}" dur="0.9s" begin="${ph}s" repeatCount="indefinite"/>` : "";
-    inner = `
-      ${shadow(60)}
-      ${tail(80, 158, -1)}
-      <g>${legSwing(98, 0)}${leg(98, hipY, groundY - 14)}${sneaker(97, groundY - 2, -1)}</g>
-      <g>${legSwing(122, -0.45)}${leg(122, hipY, groundY - 14)}${sneaker(123, groundY - 2)}</g>
-      <g>${breathe}
-        ${torso()}
-        ${arm(84, 126, 70, 148, 76, 166)}${mitten(76, 169)}
-        ${arm(136, 126, 152, 144, 146, 160)}${mitten(147, 163)}
-        ${head("open")}
-      </g>`;
-  } else if (pose === "activity" && scene.activity && scene.activity.anim === "keepups") {
-    return chiefSVG(config, Object.assign({}, scene, { pose: "keepups" }), opts);
-  } else if (pose === "activity" && scene.activity && scene.activity.anim === "rave") {
-    return chiefSVG(config, Object.assign({}, scene, { pose: "rave" }), opts);
-  } else if (pose === "activity") {
-    inner = `
-      ${shadow(70)}
-      ${tail(78, 158, -1)}
-      ${leg(98, hipY, groundY - 14)}
-      ${leg(122, hipY, groundY - 14)}
-      ${sneaker(97, groundY - 2, -1)}
-      ${sneaker(123, groundY - 2)}
-      <g>${breathe}
-        ${torso()}
-        ${arm(84, 126, 66, 145, 72, 162)}${mitten(72, 165)}
-        ${arm(136, 122, 158, 118, 166, 128)}${mitten(167, 128)}
-        ${head("open")}
-      </g>
-      ${scene.activity && PROPS[scene.activity.prop] ? `<g transform="translate(188 ${groundY - 2}) scale(1.25)">${PROPS[scene.activity.prop]()}</g>` : ""}`;
-  } else {
-    // standing moods: bored (hands in pocket, half-lid), sad, despair, lonely, excited, inlove, attentive
-    const kind = pose === "sad" ? "low" : pose === "despair" ? "closed" : pose === "excited" ? "open" : pose === "inlove" ? "heart" : pose === "attentive" ? "open" : pose === "lonely" ? "low" : "half";
-    const tilt = pose === "sad" || pose === "despair" ? 5 : 0;
-    let armsSVG;
-    if (pose === "excited" || pose === "attentive") {
-      armsSVG = pose === "excited"
-        ? arm(84, 124, 60, 102, 52, 84) + mitten(51, 79) + arm(136, 124, 160, 102, 168, 84) + mitten(169, 79)
-        : arm(84, 126, 66, 145, 72, 162) + mitten(72, 165) + arm(136, 126, 154, 142, 150, 158) + mitten(151, 160);
-    } else if (pose === "despair") {
-      armsSVG = arm(84, 122, 74, 88, 84, 62) + arm(136, 122, 146, 88, 136, 62);
-    } else if (pose === "inlove") {
-      armsSVG = arm(84, 126, 92, 148, 102, 150) + mitten(103, 151, 0.95) + arm(136, 126, 128, 148, 118, 150) + mitten(117, 151, 0.95);
-    } else {
-      // hands tucked in the hoodie pocket
-      armsSVG = arm(84, 126, 74, 150, 96, 163) + arm(136, 126, 146, 150, 124, 163);
-    }
-    const accents =
-      pose === "inlove" ? [0, 1, 2].map((i) => `
-        <path d="M ${76 + i * 34} ${52 - i * 6} l -6 -7 a 3.8 3.8 0 0 1 6 -3 a 3.8 3.8 0 0 1 6 3 Z" fill="#d4587a">
-          <animate attributeName="opacity" values="0.2;1;0.2" dur="${1.4 + i * 0.4}s" repeatCount="indefinite"/>
-        </path>`).join("")
-      : pose === "excited" ? [[64, 66], [156, 60], [110, 30]].map(([sx, sy], i) => `
-        <path d="M ${sx} ${sy - 5} l 2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 Z" fill="${hat.a}">
-          <animate attributeName="opacity" values="0.2;1;0.2" dur="${0.9 + i * 0.3}s" repeatCount="indefinite"/>
-        </path>`).join("")
-      : pose === "sad" ? `
-        <path d="M 146 92 q 5 8 0 13 q -5 -5 0 -13" fill="#7fa3c9">
-          <animate attributeName="opacity" values="0.2;0.9;0.2" dur="2.2s" repeatCount="indefinite"/>
-        </path>`
-      : pose === "attentive" && scene.snapLine ? `<text x="158" y="42" font-size="27" font-weight="700" fill="${hat.a}" font-family="sans-serif" class="chief-snap">!</text>`
-      : pose === "lonely" ? `<ellipse cx="${cx}" cy="${groundY + 2}" rx="72" ry="9" fill="none" stroke="#57515f" stroke-width="2" stroke-dasharray="5 7"/>`
-      : "";
-    inner = `
-      ${shadow()}
-      ${tail(pose === "sad" || pose === "despair" || pose === "lonely" ? 142 : 140, 158, 1)}
-      ${leg(98, hipY, groundY - 14)}
-      ${leg(122, hipY, groundY - 14)}
-      ${sneaker(97, groundY - 2, -1)}
-      ${sneaker(123, groundY - 2)}
-      <g>${breathe}
-        ${torso()}
-        ${armsSVG}
-        ${head(kind, cx, headCY, tilt)}
-        ${pose === "despair" ? mitten(84, 60) + mitten(136, 60) : ""}
-      </g>
-      ${accents}`;
-  }
-
-  return `
-    <svg class="buddy-svg ${opts.small ? "buddy-svg--small" : ""} ${opts.reveal ? "buddy-svg--reveal" : ""}"
-         viewBox="0 0 220 240" role="img" aria-label="Your chief" data-buddy>
-      ${inner}
-    </svg>`;
-}
 
   /* ---------- Render layer & honest mood ----------
      Primary renderer is the reference-art sprite set (the chief you designed),
@@ -1349,6 +923,20 @@ ${list}`,
     "You have his full attention. Briefly.",
   ];
 
+  // Reaction lines for the free-form handling (rig gestures)
+  const REACT_LINES = {
+    poke: POKE_LINES,
+    toes: ["Not the toes.", "He felt that in the sneakers.", "Toes are off limits, chief."],
+    grab: GRAB_LINES,
+    drop: DROP_LINES,
+    spin: SPIN_LINES,
+    throw: ["Airborne. His choice, apparently.", "He's flying. He'd like it noted he didn't scream.", "Full send. Bold of you both."],
+    bounce: ["Oof.", "Boing.", "He's fine. FINE."],
+    land: ["Stuck the landing. Ish.", "Down in one piece. He gives it a six.", "He'll walk that off."],
+    pet: ["Right on the sweet spot.", "He leans into it. Don't mention it to him.", "That's the good stuff, chief."],
+    tickle: ["He's ticklish. Now you know too much.", "Stop it. (Don't stop.)", "He wobbled. That's a laugh, in his language."],
+  };
+
   /* ---------- What's he up to when you visit ---------- */
 
   // null = roll a fresh scene next time the buddy tab opens
@@ -1628,6 +1216,8 @@ ${list}`,
      ---------------------------------------------------------- */
 
   function render() {
+    // every render replaces the DOM — retire any live rig first
+    if (chiefRig) { chiefRig.destroy(); chiefRig = null; }
     switch (state.stage) {
       case "welcome": return renderWelcome();
       case "onboarding": return renderOnboarding();
@@ -1986,7 +1576,7 @@ ${list}`,
           <p class="buddy-line" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
         </div>
         <div class="screen-footer" style="align-items:center">
-          <p class="micro">Tap to snap him out of whatever he's doing. Double-tap for a spin. Drag to pick him up by the scruff.</p>
+          <p class="micro">Poke him. Stroke him slowly. Wiggle to tickle. Pick him up by the scruff — or launch him and watch him bounce. Double-tap for a spin. His eyes follow your finger.</p>
           <button class="btn btn--quiet" data-act="reset-inline">Prototype v0.1 · start again</button>
         </div>
       </div>`;
@@ -1996,16 +1586,51 @@ ${list}`,
   // to pick it up by the scruff and dangle it. It sways as you move, then
   // drops back with a bounce. Only the big buddy (inside [data-holder]) is
   // grabbable — the small one on Today just opens the buddy tab.
-  function wireBuddyInteractions() {
-    const svg = app.querySelector("[data-buddy]");
-    const holder = app.querySelector("[data-holder]");
-    if (!svg || !holder) return;
+  // The live Rig owns all handling for the drawn chief: poke (head/belly/toes),
+  // stroke to pet, wiggle to tickle, double-tap spin, pick up by the scruff,
+  // dangle, and full-on throws with bounces. Reactions come back as caption
+  // lines. Image modes (Midjourney render / photo sprites) keep the simpler
+  // legacy handling below.
+  let chiefRig = null;
 
-    let pokes = 0;
+  function wireBuddyInteractions() {
+    const holder = app.querySelector("[data-holder]");
+    if (chiefRig) { chiefRig.destroy(); chiefRig = null; }
+    if (!holder) return;
+
     const react = (pool, n) => {
       const line = app.querySelector("#buddy-line");
       if (line) line.textContent = pick(pool, n);
     };
+
+    const drawnMode = state.buddy && !state.buddy.imageUrl && state.buddy.useSprite !== true;
+    if (drawnMode && Chief && Chief.Rig) {
+      let lastReact = 0;
+      chiefRig = new Chief.Rig(holder, state.buddy.config, buddyScene || { pose: "attentive" }, {
+        onSnap: () => {
+          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()) };
+          render();
+        },
+        onReact: (type) => {
+          // don't let bounce spam overwrite meatier lines
+          const now = Date.now();
+          if (type === "bounce" && now - lastReact < 700) return;
+          lastReact = now;
+          const pool = REACT_LINES[type];
+          if (pool) react(pool, now);
+        },
+      });
+      return;
+    }
+
+    legacyBuddyInteractions(holder, react);
+  }
+
+  function legacyBuddyInteractions(holder, react) {
+    const svg = app.querySelector("[data-buddy]");
+    if (!svg || !holder) return;
+
+    let pokes = 0;
 
     const poke = () => {
       svg.classList.remove("is-poked");
