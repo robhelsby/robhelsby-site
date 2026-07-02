@@ -1,20 +1,21 @@
 /* ============================================================
    Alright Chief — first-pass prototype
-   Warm, dark, typographic. No clinical white, no app-store cyan.
+   Sage green + putty grey, after the reference — the dark character
+   carries the contrast. Typographic, no app-store cyan.
    ============================================================ */
 
 :root {
-  --bg: #15120e;
-  --bg-raise: #1d1914;
-  --bg-raise-2: #262019;
-  --line: #332c22;
-  --ink: #f2ece1;
-  --ink-dim: #b1a591;
-  --ink-faint: #7d735f;
-  --accent: #e8923c;        /* warm amber — the one bit of colour we allow ourselves */
-  --accent-ink: #1a1208;
-  --lost: #c9b8a0;
-  --gained: #e8b06b;
+  --bg: #a8bf96;            /* sage green — the wall */
+  --bg-raise: #e6e4d9;      /* putty grey — the sweatshirt */
+  --bg-raise-2: #dbd9cc;
+  --line: #c4c6b2;
+  --ink: #23231c;
+  --ink-dim: #4f4f43;
+  --ink-faint: #737464;
+  --accent: #2f5b2a;        /* deep green */
+  --accent-ink: #f0eee0;    /* cream */
+  --lost: #918d7d;
+  --gained: #4b7f3f;
   --radius: 18px;
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
@@ -24,7 +25,7 @@
 
 html, body {
   height: 100%;
-  background: #0c0a08;
+  background: #cdccc0;
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -47,10 +48,10 @@ html, body {
   max-height: calc(100vh - 48px);
   border-radius: 48px;
   padding: 12px;
-  background: #1a1714;
+  background: #23231c;
   box-shadow:
-    0 0 0 1px #2c2620,
-    0 30px 80px rgba(0, 0, 0, 0.6);
+    0 0 0 1px #35352b,
+    0 30px 80px rgba(55, 60, 45, 0.35);
   flex-shrink: 0;
 }
 
@@ -104,7 +105,7 @@ html, body {
 .stage-note__section {
   margin-top: 18px;
   padding-top: 14px;
-  border-top: 1px solid #221d17;
+  border-top: 1px solid #b5b4a6;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -119,7 +120,7 @@ html, body {
 }
 
 .stage-note__section input {
-  background: #14110d;
+  background: #f2f0e6;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
@@ -219,7 +220,7 @@ h1.display {
 .btn:active { transform: scale(0.97); }
 
 .btn--primary { background: var(--accent); color: var(--accent-ink); }
-.btn--primary:hover { background: #f2a050; }
+.btn--primary:hover { background: #3a6f34; }
 
 .btn--ghost {
   background: none;
@@ -392,8 +393,8 @@ h1.display {
 }
 
 @keyframes mic-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 146, 60, 0.35); }
-  50% { box-shadow: 0 0 0 18px rgba(232, 146, 60, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47, 91, 42, 0.30); }
+  50% { box-shadow: 0 0 0 18px rgba(47, 91, 42, 0); }
 }
 
 .voice-status {
@@ -470,7 +471,7 @@ h1.display {
 .gen-orb {
   width: 120px; height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3a3127, #1d1914 70%);
+  background: radial-gradient(circle at 35% 30%, #f2f0e6, #d8d6c9 70%);
   position: relative;
   animation: orb-pulse 1.4s ease-in-out infinite;
 }
@@ -523,7 +524,7 @@ img.chief-sprite {
   object-fit: contain;
   object-position: center bottom;
   image-rendering: auto;
-  filter: drop-shadow(0 10px 12px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 10px 12px rgba(30, 40, 25, 0.35));
   transform-origin: 50% 100%;
   animation: chief-breathe 3.6s ease-in-out infinite;
 }
@@ -643,7 +644,7 @@ img.chief-sprite {
   cursor: pointer;
 }
 .appbar__connect:hover { color: var(--ink); border-color: var(--ink-faint); }
-.appbar__connect.is-on { color: var(--accent); border-color: #4d3a21; }
+.appbar__connect.is-on { color: var(--accent); border-color: #9db38a; }
 
 .linklike {
   background: none;
@@ -659,7 +660,7 @@ img.chief-sprite {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(8, 6, 4, 0.72);
+  background: rgba(38, 44, 32, 0.5);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -683,7 +684,7 @@ img.chief-sprite {
 .connect-card p { font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); }
 .connect-card input {
   width: 100%;
-  background: #14110d;
+  background: #f2f0e6;
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--ink);
@@ -737,7 +738,7 @@ img.chief-sprite {
 .tabbar {
   display: flex;
   border-top: 1px solid var(--line);
-  background: var(--bg);
+  background: var(--bg-raise);
   padding: 6px 10px calc(14px + env(safe-area-inset-bottom));
 }
 
@@ -765,6 +766,7 @@ img.chief-sprite {
 .card {
   background: var(--bg-raise);
   border: 1px solid var(--line);
+  box-shadow: 0 2px 10px rgba(55, 60, 45, 0.10);
   border-radius: var(--radius);
   padding: 20px;
   display: flex;
@@ -772,7 +774,7 @@ img.chief-sprite {
   gap: 10px;
 }
 
-.card--accent { border-color: #4d3a21; background: linear-gradient(160deg, #2a2014, var(--bg-raise) 70%); }
+.card--accent { border-color: #b9c6a6; background: linear-gradient(160deg, #eef0dd, var(--bg-raise) 70%); }
 
 .card__kicker {
   font-size: 11px;

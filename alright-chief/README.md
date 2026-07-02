@@ -125,6 +125,6 @@ without the render.
 | File | Purpose |
 |---|---|
 | `index.html` | Phone frame + side panel |
-| `styles.css` | All styling (Bricolage Grotesque display / Inter body, dark warm palette) |
+| `styles.css` | All styling (Bricolage Grotesque display / Inter body, sage-green + putty-grey palette) |
 | `chief.js` | The character runtime: SVG rig, eyes, physics, gestures, behaviour |
 | `app.js` | State, screens, Balance/progress engines, LLM layer, Midjourney pipeline |

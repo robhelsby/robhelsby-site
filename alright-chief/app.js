@@ -943,38 +943,73 @@ ${list}`,
   let buddyScene = null;
 
   function rollScene() {
+    const v = Math.floor(Math.random() * 997); // caption variant for this visit
     const learned = learnedActivities();
     if (learned.length && Math.random() < 0.6) {
-      return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)] };
+      return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)], v };
     }
     // his resting state reflects honest recent weather (can sit low; that's allowed)
     const idles = [currentMood(), "sleep", "walking"];
-    return { pose: idles[Math.floor(Math.random() * idles.length)] };
+    return { pose: idles[Math.floor(Math.random() * idles.length)], v };
   }
 
+  // The single line under him — different every visit.
   function sceneCaption(scene) {
     const name = state.buddy?.name || "Your chief";
+    const P = (arr) => pick(arr, scene.v || 0);
     switch (scene.pose) {
-      case "activity":
-        return `${name} is ${scene.activity.doing}. ${scene.activity.quip}`;
-      case "sleep":
-        return `${name}'s flat out under the blanket. Long day of doing your old Saturdays.`;
-      case "walking":
-        return `${name}'s having a wander. No particular place to be, which is the point.`;
-      case "bored":
-        return `${name} is just standing about, hands in his pocket. He was like that when you got here.`;
-      case "sad":
-        return `${name}'s a bit low today — your lost column's been heavy lately. That's honest, not a failing.`;
-      case "despair":
-        return `${name}'s having one of those days. So have you, by the look of the ledger. Both allowed.`;
-      case "excited":
-        return `${name}'s buzzing today. So are your last few gained entries.`;
-      case "inlove":
-        return `${name}'s all hearts today. The gained column's been full of people lately.`;
-      case "lonely":
-        return `${name}'s feeling a bit lonely out here. Worth a visit more often, chief.`;
+      case "activity": {
+        const a = scene.activity;
+        return P([
+          `${name} is ${a.doing}. ${a.quip}`,
+          `Caught him ${a.doing}.`,
+          `He's been ${a.doing} half the afternoon. ${a.quip}`,
+          `${a.quip}`,
+        ]);
+      }
+      case "sleep": return P([
+        `Flat out. Long day of doing your old Saturdays.`,
+        `Shh. He's off.`,
+        `He'd say he was just resting his eyes.`,
+        `Out cold. He earned it, apparently.`,
+      ]);
+      case "walking": return P([
+        `Off on a wander. Nowhere in particular, which is the point.`,
+        `Stretching his legs. Yours, technically.`,
+        `He walks when he's thinking. About what, he won't say.`,
+      ]);
+      case "bored": return P([
+        `Just standing about. He was like that when you got here.`,
+        `Hands in pockets. Big plans, clearly.`,
+        `He wasn't waiting for you. (He was waiting for you.)`,
+      ]);
+      case "sad": return P([
+        `A bit low today — the lost column's been heavy. Honest, not a failing.`,
+        `Quiet one today. Some days just are.`,
+        `He's carrying a bit. So are you, by the ledger's look.`,
+      ]);
+      case "despair": return P([
+        `One of those days. Both of you are allowed them.`,
+        `Rough patch. He'll come round. So will you.`,
+      ]);
+      case "excited": return P([
+        `Buzzing today. So are your last few gained entries.`,
+        `Someone's had a good week. Two of you, actually.`,
+      ]);
+      case "inlove": return P([
+        `All hearts today. The gained column's been full of people lately.`,
+        `Smitten. Can't think why. (He can.)`,
+      ]);
+      case "lonely": return P([
+        `Feeling a bit lonely out here. Worth a visit more often, chief.`,
+        `It's been quiet. He noticed.`,
+      ]);
       default:
-        return scene.snapLine || `All yours, chief. He's paying attention.`;
+        return scene.snapLine || P([
+          `All yours. He's paying attention.`,
+          `Go on then. He's watching.`,
+          `He's all ears. Well — fur.`,
+        ]);
     }
   }
 
@@ -1476,6 +1511,7 @@ ${list}`,
         </div>
         <div class="screen-footer">
           <p class="micro" style="text-align:center">Private by design. No feed, no sharing, no comparison.</p>
+          <button class="btn btn--quiet" data-act="reset-inline" style="align-self:center">Prototype v0.1 · start again</button>
         </div>
       </div>`;
   }
@@ -1564,20 +1600,15 @@ ${list}`,
       </div>`;
   }
 
+  // His room: just him, and one line. No title, no tips — the handling is
+  // there to be discovered.
   function buddyTab() {
-    const name = esc(state.buddy?.name || "Your chief");
     if (!buddyScene) buddyScene = rollScene();
     return `
-      <div class="screen" style="padding-top:10px;text-align:center">
-        <h2 class="home-greeting" style="text-align:center">${name}</h2>
-        <p class="micro">Observe, or interact. Both count. He doesn't need you — he just notices when you're there.</p>
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px">
+      <div class="screen" style="text-align:center">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">
           <div class="buddy-stage"><div class="buddy-holder" data-holder>${buddyVisual({}, buddyScene)}</div></div>
           <p class="buddy-line" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
-        </div>
-        <div class="screen-footer" style="align-items:center">
-          <p class="micro">Poke him. Stroke him slowly. Wiggle to tickle. Pick him up by the scruff — or launch him and watch him bounce. Double-tap for a spin. His eyes follow your finger.</p>
-          <button class="btn btn--quiet" data-act="reset-inline">Prototype v0.1 · start again</button>
         </div>
       </div>`;
   }
