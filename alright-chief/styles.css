@@ -927,7 +927,7 @@ img.chief-sprite {
   position: absolute;
   left: 20px;
   right: 20px;
-  bottom: 14px;
+  top: 18px;
   pointer-events: none;
   max-width: none;
 }
