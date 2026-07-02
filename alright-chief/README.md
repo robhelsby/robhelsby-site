@@ -27,14 +27,17 @@ Mapped to the product shape in the workshop brief:
    (baby's age, first/second, who's at home), then the pivot to three genuinely personal
    questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
    text fallback (see below).
-2. **Character — the chief.** The designed reference art, made **interactive**: 40
-   background-keyed sprites in `assets/chief/` — a mood set (sleeping, bored, walking,
-   despair, sad, excited, lonely, in love) and ~30 hobbies. He **breathes on idle**,
-   **squishes when poked**, **spins on double-tap**, **dangles when picked up by the
-   scruff**, and **swaps pose** for his mood and current activity. A fully animated
-   generative SVG chief is the fallback and an optional mode (toggle in the side panel).
-   See `RENDER_PIPELINE.md` for the production path (Rive) that animates this art properly
-   and why a 3D game engine is the wrong tool for this flat 2D style.
+2. **Character — the chief.** A hand-built vector character to the reference direction:
+   shaggy matte-black fur, slightly dog-like with a scruffy **wagging tail**, grey hoodie,
+   purple mittens, chunky sneakers, and a hat (bucket/cap/beanie in green, purple, orange
+   or blue) with the cream "C" patch. Per-user variation in hat, colours, hoodie shade and
+   build. He is **genuinely animated** (SVG-native SMIL, works on iOS Safari): he breathes,
+   blinks and wags on idle, and lives full scene loops — asleep under a blanket with
+   drifting z's, **keep-ups with a football**, **dancing at a rave** between speakers and
+   pulsing lights, walking, plus prop scenes for the rest of his learned hobbies. All the
+   direct handling stays: poke-squish, double-tap spin, pick-up-by-the-scruff dangle.
+   His resting mood follows the honest Balance (he can look low; that's allowed).
+   `RENDER_PIPELINE.md` covers the production path (Rive) for game-quality animation.
 3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
    Not scored, no streaks. Spoken by default, typed if preferred.
 4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
