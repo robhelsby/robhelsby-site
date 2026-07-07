@@ -931,3 +931,52 @@ img.chief-sprite {
   pointer-events: none;
   max-width: none;
 }
+
+/* The room keeps your hours — the light shifts with the time of day.
+   Tints stay light enough that the dark chief always reads clearly. */
+.buddy-room--dawn  { background: linear-gradient(180deg, #ece5cd 0%, #b8c8a0 78%); }
+.buddy-room--day   { background: transparent; }
+.buddy-room--dusk  { background: linear-gradient(180deg, #e3d2ae 0%, #a3b58c 80%); }
+.buddy-room--night { background: linear-gradient(180deg, #7e916f 0%, #93a681 80%); }
+.buddy-room--night .buddy-line--float { color: #2a2e24; }
+
+/* ---------- The chief attends the check-in ---------- */
+.checkin-chief {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 2px;
+}
+
+.checkin-chief .buddy-svg,
+.checkin-chief .buddy-svg--small {
+  width: 96px;
+  height: 96px;
+}
+
+/* Leaning in while the mic is live. Wrapper div only — never animate
+   transforms on SVG children (broken on iOS Safari). */
+.checkin-chief.is-listening {
+  animation: chief-listen 1.5s ease-in-out infinite;
+}
+
+@keyframes chief-listen {
+  0%, 100% { transform: translateY(0) rotate(-1.4deg); }
+  50%      { transform: translateY(-3px) rotate(1.4deg); }
+}
+
+/* ---------- Crisis signposting on the done screen ---------- */
+.signpost {
+  border: 1px solid #c7c3ae;
+  background: var(--bg-raise);
+  border-radius: 16px;
+  padding: 14px 16px;
+  max-width: 300px;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.signpost strong { color: var(--ink); }

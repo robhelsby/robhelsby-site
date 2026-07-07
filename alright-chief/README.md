@@ -70,6 +70,31 @@ Mapped to the product shape in the workshop brief:
    API; enable + fire a nudge from the side panel) draw on the same honest signal. Claude
    rewrites these live when connected.
 9. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
+10. **Journey chapters — the baby's age shapes the voice.** Onboarding asks the baby's age,
+    and the whole app knows the difference between expecting, the newborn fog (0–3 months),
+    the first year, a toddler and a few years in: the check-in questions change per chapter,
+    the welcome line knows where he is before the ledger can show change, the chief's
+    captions pick up chapter flavour, and Claude gets the chapter as context so generated
+    copy never talks to a rookie like a veteran (or vice versa).
+11. **The chief attends the check-in.** He stands quietly above the question, perks up and
+    leans in while the mic is live (wrapper-level animation only — iOS-safe), and turns up
+    delighted on the done screen. The entry is *to* somebody.
+12. **The room keeps your hours.** The buddy room's light shifts through dawn, day, dusk and
+    night, and the scene roll respects the clock — visit late and he's usually asleep
+    ("It's late, chief. He's got the right idea."), visit early and he might be up on a
+    morning wander. Captions know the time too.
+13. **The room remembers.** Props from the activities he's learned from the dad's own words
+    (the vinyl, the controller…) live on his floor even when he isn't using them.
+14. **Haptics.** Poke, grab, throw, bounce, land, pet, tickle — each gesture has its own
+    small vibration pattern (`navigator.vibrate`, a no-op where unsupported).
+15. **The Sunday debrief.** On Sundays the Today screen reads the week back: how many days
+    made it in, and the heaviest line from each column side by side. A readback, not a
+    review; Claude rewrites it from the actual entries when connected.
+16. **Crisis rail.** A deliberately narrow, on-device check for genuinely dark entries adds
+    gentle signposting (Samaritans, PANDAS, NHS 111) to the done screen. No diagnosing,
+    no flag stored, nothing leaves the device.
+17. **The ledger as a keepsake.** "Keep a copy" on the Balance tab exports the whole ledger
+    as a plain Markdown file — his words are his, no lock-in.
 
 ## Voice-first input
 

@@ -439,6 +439,24 @@
     const vh = world ? world.vh : 240;
     const ox = world ? world.ox : 0;
     const oy = world ? world.oy : 0;
+    // opts.roomProps: activity props that live on his floor even when idle —
+    // the room remembers what its owner is into. World mode only.
+    let roomBits = "";
+    if (world && Array.isArray(opts.roomProps) && opts.roomProps.length) {
+      const floorY = oy + GROUND;
+      const spots = [
+        { x: vw * 0.13, s: 1.1 },
+        { x: vw * 0.87, s: 1.0 },
+      ];
+      roomBits = `<g class="p-roomprops" pointer-events="none">` + opts.roomProps.slice(0, 2).map((name, i) => {
+        if (!PROPS[name]) return "";
+        const p = spots[i];
+        return `<g transform="translate(${p.x.toFixed(0)} ${(floorY - 1).toFixed(0)}) scale(${p.s})" opacity="0.95">
+          <ellipse cx="0" cy="2" rx="26" ry="5" fill="rgba(11,10,16,0.10)"/>
+          ${PROPS[name]()}
+        </g>`;
+      }).join("") + `</g>`;
+    }
     const body_ = `
         ${scenery}
         <g class="p-root"><g class="p-squash"><g class="p-figure">${figure}</g></g></g>
@@ -448,7 +466,7 @@
            viewBox="0 0 ${vw.toFixed(0)} ${vh.toFixed(0)}" ${world ? 'preserveAspectRatio="xMidYMax meet"' : ""}
            role="img" aria-label="Your chief" data-buddy data-uid="${uid}"
            data-vw="${vw.toFixed(0)}" data-vh="${vh.toFixed(0)}" data-ox="${ox.toFixed(0)}" data-oy="${oy.toFixed(0)}">
-        ${world ? `<g transform="translate(${ox.toFixed(0)} ${oy.toFixed(0)})">${body_}</g>` : body_}
+        ${roomBits}${world ? `<g transform="translate(${ox.toFixed(0)} ${oy.toFixed(0)})">${body_}</g>` : body_}
       </svg>`;
   }
 
@@ -466,12 +484,14 @@
      * config: chief config
      * scene: {pose, activity?, snapLine?}
      * cb: { onReact(type), onSnap() }  — reaction hooks for captions
+     * opts: { roomProps? } — extra dressing for the room render
      */
-    constructor(host, config, scene, cb = {}) {
+    constructor(host, config, scene, cb = {}, opts = {}) {
       this.host = host;
       this.config = config;
       this.scene = scene || { pose: "attentive" };
       this.cb = cb;
+      this.opts = opts;
       this.destroyed = false;
 
       // the room: a viewport-sized world so he can roam the whole screen.
@@ -488,7 +508,7 @@
         minY: -(this.world.oy - 6),
       };
 
-      host.innerHTML = buildChief(config, this.scene, { world: this.world });
+      host.innerHTML = buildChief(config, this.scene, { world: this.world, roomProps: opts.roomProps });
       this.svg = host.querySelector("svg");
       this.grab = {
         root: this.svg.querySelector(".p-root"),

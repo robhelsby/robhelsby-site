@@ -393,6 +393,7 @@
     function stopListening() {
       clearWatchdog();
       listening = false;
+      if (opts.onListen) opts.onListen(false);
       if (rec) {
         try { rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) { /* already stopped */ }
         rec = null;
@@ -413,6 +414,7 @@
     function handleError(code) {
       clearWatchdog();
       listening = false;
+      if (opts.onListen) opts.onListen(false);
       interim = "";
       if (code === "not-allowed" || code === "service-not-allowed") {
         failToText("Couldn't get permission for the mic — no drama, type it instead.");
@@ -468,6 +470,7 @@
       r.onend = () => {
         clearWatchdog();
         listening = false;
+        if (opts.onListen) opts.onListen(false);
         interim = "";
         rec = null;
         updateVoiceUI();
@@ -477,6 +480,7 @@
         r.start();
         rec = r;
         listening = true;
+        if (opts.onListen) opts.onListen(true);
       } catch (e) {
         failToText("The mic wouldn't start here — type it instead.");
         return;
@@ -687,6 +691,7 @@ Hard rules:
   function profileSummary() {
     const p = state.profile;
     return `Baby: ${p.babyAge || "unknown age"}. ${p.which || ""}. Home: ${p.home || "unknown"}.
+Chapter of the journey: ${stageInfo().llm}
 A good Saturday before the baby: "${p.saturday || "—"}".
 Something he misses: "${p.miss || "—"}".
 Something he wants his kid to know he loved: "${p.love || "—"}".`;
@@ -887,6 +892,110 @@ ${list}`,
     { q: "And what landed in the gained column?", sub: "Most apps only show you the gain. We hold both. But this side matters too." },
   ];
 
+  /* ---------- Journey chapters — the baby's age shapes the voice ----------
+     Onboarding asks the baby's age, and the whole app knows the difference
+     between expecting, the newborn fog, the first year and a toddler tearing
+     about. Check-in prompts, early welcomes, the chief's captions and the
+     LLM context all read from here. ---------- */
+
+  const STAGES = {
+    expecting: {
+      label: "expecting — the baby hasn't arrived yet",
+      llm: "The baby has NOT arrived yet — he is expecting. Losses are anticipatory (plans going quiet, life reshaping early); gains are early ones (perspective, readiness, seeing his own dad differently). Never talk as if the baby is here.",
+      lost: { q: "What's already shifting, before the baby's even here?", sub: "The spare room that isn't spare any more. The plans going quiet. It counts early." },
+      gained: { q: "And what's turned up ahead of schedule?", sub: "A new way of seeing your own dad. A room with a cot in it. Small counts." },
+      welcome: [
+        "Not long now. The lost column starts moving before the baby does — that's normal, put it down.",
+        "Still on the way. Worth writing down what your Saturdays look like now — you'll want the record.",
+      ],
+      captions: [
+        "He knows something's coming. He's not worried. (He's a bit worried.)",
+        "He's making the most of the quiet. Recommends you do the same.",
+      ],
+    },
+    newborn: {
+      label: "the newborn fog — first three months",
+      llm: "The baby is 0–3 months old: the newborn fog. He is likely exhausted; days blur; losses are raw and constant, gains are tiny but enormous. Never imply he should be finding it easier by now.",
+      lost: { q: "What did the fog take today?", sub: "Sleep, probably. These weeks blur — naming one thing keeps it yours." },
+      gained: { q: "And somewhere in the fog — what appeared?", sub: "It can be tiny. In these weeks, tiny is enormous." },
+      welcome: [
+        "The fog weeks. Nobody does these well — they do them tired. One lost, one gained, then back to it.",
+        "Three months of survival mode isn't you failing. Put today down and forget the rest.",
+      ],
+      captions: [
+        "He's napping in twenty-minute stretches too. Solidarity.",
+        "He's keeping it slow today. Someone in this arrangement should.",
+      ],
+    },
+    baby: {
+      label: "months three to twelve — the first year proper",
+      llm: "The baby is 3–12 months old: routines forming, smiles and laughs arriving, fragments of himself starting to come back. Losses are still real; don't oversell the recovery.",
+      lost: { q: "What got traded away today?", sub: "The routine's taking shape — which usually means something of yours moved to make room." },
+      gained: { q: "And the other column?", sub: "They start giving things back at this age. Smiles, mostly. Log them." },
+      welcome: [
+        "The first year's long in the days, short in the months. The ledger keeps both true.",
+        "Somewhere between the fog and the first birthday. Good stretch to keep the record honest.",
+      ],
+      captions: [
+        "He reckons it's getting more interesting round here, month on month.",
+        "He's learned a new trick. He won't show you. It's a whole thing.",
+      ],
+    },
+    toddler: {
+      label: "one to two — a small person now",
+      llm: "The child is 1–2 years old: a walking, opinionated small person. He's likely reclaiming pieces of his old life; losses now tend to be about energy and time rather than shock. The identity question is quieter but still real.",
+      lost: { q: "What did today's small tornado flatten?", sub: "A plan. A lie-in. An uninterrupted anything. Put it down." },
+      gained: { q: "And what did they hand you today?", sub: "They're a proper person now. Persons hand you things." },
+      welcome: [
+        "Year one's done. The question now isn't survival — it's which bits of you are coming back, and which you're leaving.",
+        "Chasing a toddler counts as training. The ledger still wants its thirty seconds.",
+      ],
+      captions: [
+        "He's been chased round this screen all afternoon. He gets it.",
+        "He's hidden the remote. Getting into character.",
+      ],
+    },
+    older: {
+      label: "past the baby stage — a few years in",
+      llm: "The child is past two. He's some years into fatherhood: the acute losses have settled into patterns; the question is what he kept, what he dropped, and what he still misses. Talk to a veteran, not a rookie.",
+      lost: { q: "What's still not made its way back?", sub: "A few years in, some things never returned. Worth saying which." },
+      gained: { q: "What's grown in that's yours to keep?", sub: "Some gains are old friends by now. The new ones still count." },
+      welcome: [
+        "A few years in. The ledger's less about surviving now, more about noticing what stuck.",
+        "Old hand. The columns still run, though — they never really stop.",
+      ],
+      captions: [
+        "He's been at this a while. Old hands, the pair of you.",
+        "He's got the routine down. Still improvises the odd Saturday.",
+      ],
+    },
+  };
+
+  function babyStage() {
+    const a = ((state && state.profile && state.profile.babyAge) || "").toLowerCase();
+    if (a.includes("way")) return "expecting";
+    if (a.startsWith("0")) return "newborn";
+    if (a.startsWith("3")) return "baby";
+    if (a.startsWith("1")) return "toddler";
+    if (a.includes("older")) return "older";
+    return "baby";
+  }
+  const stageInfo = () => STAGES[babyStage()];
+
+  // The check-in questions know which chapter he's in.
+  function checkinPrompts(isLost) {
+    const st = stageInfo();
+    const base = isLost ? LOST_PROMPTS : GAINED_PROMPTS;
+    return base.concat([isLost ? st.lost : st.gained]);
+  }
+
+  // Before the ledger is deep enough to reflect change, the welcome still
+  // knows where he is — the newborn fog and a two-year-old are different lives.
+  function earlyWelcome() {
+    if (state.entries.length >= 5) return null;
+    return pick(stageInfo().welcome, new Date().getDate() + state.entries.length);
+  }
+
   const POKE_LINES = [
     "Oi.",
     "Heh.",
@@ -942,15 +1051,28 @@ ${list}`,
   // null = roll a fresh scene next time the buddy tab opens
   let buddyScene = null;
 
+  // The room keeps your hours: the light shifts through the day, and so
+  // does what he's likely to be doing when you walk in.
+  function daypart(h = new Date().getHours()) {
+    if (h < 6) return "night";
+    if (h < 9) return "dawn";
+    if (h < 17) return "day";
+    if (h < 21) return "dusk";
+    return "night";
+  }
+
   function rollScene() {
     const v = Math.floor(Math.random() * 997); // caption variant for this visit
+    const dp = daypart();
+    if (dp === "night" && Math.random() < 0.75) return { pose: "sleep", v, dp };
+    if (dp === "dawn" && Math.random() < 0.35) return { pose: "walking", v, dp };
     const learned = learnedActivities();
     if (learned.length && Math.random() < 0.6) {
-      return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)], v };
+      return { pose: "activity", activity: learned[Math.floor(Math.random() * learned.length)], v, dp };
     }
     // his resting state reflects honest recent weather (can sit low; that's allowed)
     const idles = [currentMood(), "sleep", "walking"];
-    return { pose: idles[Math.floor(Math.random() * idles.length)], v };
+    return { pose: idles[Math.floor(Math.random() * idles.length)], v, dp };
   }
 
   // The single line under him — different every visit.
@@ -967,13 +1089,21 @@ ${list}`,
           `${a.quip}`,
         ]);
       }
-      case "sleep": return P([
+      case "sleep": return P((scene.dp || daypart()) === "night" ? [
+        `It's late, chief. He's got the right idea.`,
+        `Lights out in here. Yours should be too, if you get the chance.`,
+        `Out cold. It's that time — nothing here needs you awake.`,
+      ] : [
         `Flat out. Long day of doing your old Saturdays.`,
         `Shh. He's off.`,
         `He'd say he was just resting his eyes.`,
         `Out cold. He earned it, apparently.`,
       ]);
-      case "walking": return P([
+      case "walking": return P((scene.dp || daypart()) === "dawn" ? [
+        `Up with the sun. One of you had a choice about it.`,
+        `Early leg-stretch. He does his best thinking before nine.`,
+        `Morning laps. He's showing solidarity with the early feeds.`,
+      ] : [
         `Off on a wander. Nowhere in particular, which is the point.`,
         `Stretching his legs. Yours, technically.`,
         `He walks when he's thinking. About what, he won't say.`,
@@ -982,6 +1112,7 @@ ${list}`,
         `Just standing about. He was like that when you got here.`,
         `Hands in pockets. Big plans, clearly.`,
         `He wasn't waiting for you. (He was waiting for you.)`,
+        ...stageInfo().captions,
       ]);
       case "sad": return P([
         `A bit low today — the lost column's been heavy. Honest, not a failing.`,
@@ -1009,6 +1140,7 @@ ${list}`,
           `All yours. He's paying attention.`,
           `Go on then. He's watching.`,
           `He's all ears. Well — fur.`,
+          ...stageInfo().captions,
         ]);
     }
   }
@@ -1246,6 +1378,81 @@ ${list}`,
     return pick(variants, es.length);
   }
 
+  /* ---------- Crisis rail ----------
+     The ledger invites honesty, so it has to know what to do when honesty
+     is dark. A deliberately narrow scripted check — no diagnosing, no
+     storing a flag, nothing leaves the device — that adds gentle
+     signposting to the done screen when an entry reads genuinely heavy. */
+
+  const CRISIS_RE = /(can'?t\s+(cope|go\s+on|do\s+this\s+any\s?more))|(no\s+point\s+(in\s+)?(any|to)\s?thing)|(hopeless)|(worthless)|(hate\s+(myself|my\s+life))|(don'?t\s+want\s+to\s+(be\s+here|wake\s+up|exist))|(hurt(ing)?\s+myself)|(self.?harm)|(suicid)|(kill\s+myself)|(end\s+it\s+all)|(better\s+off\s+without\s+me)/i;
+
+  const crisisCheck = (text) => CRISIS_RE.test(text || "");
+
+  /* ---------- The Sunday debrief ----------
+     Once a week, the week read back: how many days made it in, and the
+     heaviest line from each column, side by side. A readback, not a review. */
+
+  function weekEntries() {
+    const cutoff = Date.now() - 7 * 864e5;
+    return state.entries.filter((e) => new Date(e.iso).getTime() >= cutoff);
+  }
+
+  function weeklyDebrief() {
+    if (new Date().getDay() !== 0) return null; // Sundays only
+    const week = weekEntries();
+    if (week.length < 2) return null;
+    let heavyL = week[0], heavyG = week[0], wl = -1, wg = -1;
+    for (const e of week) {
+      const w = entryWeight(e);
+      if (w.lost > wl) { wl = w.lost; heavyL = e; }
+      if (w.gained > wg) { wg = w.gained; heavyG = e; }
+    }
+    return `${week.length} days made it into the ledger this week. The heaviest thing you lost: “${heavyL.lost}”. The biggest thing you gained: “${heavyG.gained}”. Read them together — that was the week, both true at once.`;
+  }
+
+  /* ---------- The ledger as a keepsake ----------
+     His words, exported as a plain file he owns. No lock-in — it's his life. */
+
+  function exportLedger() {
+    const p = state.profile;
+    const lines = [
+      "# The Balance",
+      "",
+      "One thing lost, one thing gained, every day. Kept honestly.",
+      p.babyAge ? `Started when the little one was: ${p.babyAge.toLowerCase()}.` : "",
+      "",
+    ];
+    state.entries.forEach((e) => {
+      lines.push(`## ${fmtShort(e.iso)}`, `- Lost: ${e.lost}`, `- Gained: ${e.gained}`, "");
+    });
+    lines.push("---", "Exported from Alright Chief. This file is yours; the app keeps nothing anywhere else.");
+    try {
+      const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `the-balance-${dateKey()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch (e) { /* nothing sensible to do in a prototype */ }
+  }
+
+  /* ---------- Haptics ----------
+     The chief is handled, so handling should be felt. Tiny vibration
+     patterns per gesture — a no-op wherever the API isn't supported. */
+
+  const BUZZ = {
+    poke: 12, toes: 14, grab: 18, spin: 16, throw: 22, bounce: 9,
+    drop: [16, 40, 10], land: [14, 30, 8], pet: 6, tickle: [8, 26, 8, 26, 8], snap: 12,
+  };
+
+  function buzz(type) {
+    try {
+      if (navigator.vibrate) navigator.vibrate(BUZZ[type] || 10);
+    } catch (e) { /* not supported — fine */ }
+  }
+
   /* ----------------------------------------------------------
      Screens
      ---------------------------------------------------------- */
@@ -1468,13 +1675,24 @@ ${list}`,
     const name = esc(state.buddy?.name || "Your buddy");
     const obs = pick(observeLines(), new Date().getDate() + state.entries.length);
     const ins = insight();
-    const welcome = progressGreeting();
+    // The welcome reflects real change once the ledger can show it; before
+    // that it still knows which chapter he's in (from the baby's age).
+    const progress = progressGreeting();
+    const welcome = progress || earlyWelcome();
+    const debrief = weeklyDebrief();
 
     const welcomeCard = welcome ? `
       <div class="card card--accent">
-        <p class="card__kicker">Welcome back, chief</p>
+        <p class="card__kicker">${progress ? "Welcome back, chief" : "Where you're at"}</p>
         <p class="card__body" id="welcome-line">${esc(welcome)}</p>
-        <p class="micro">Not a score. A mirror — both columns still run, and that's the point.</p>
+        <p class="micro">${progress ? "Not a score. A mirror — both columns still run, and that's the point." : "The app knows which chapter you're in. The questions do too."}</p>
+      </div>` : "";
+
+    const debriefCard = debrief ? `
+      <div class="card">
+        <p class="card__kicker">The Sunday debrief</p>
+        <p class="card__body" id="debrief-line">${esc(debrief)}</p>
+        <p class="micro">The week, read back. Nothing to action.</p>
       </div>` : "";
 
     const checkinCard = done ? `
@@ -1497,6 +1715,7 @@ ${list}`,
         <div class="home-stack">
           ${welcomeCard}
           ${checkinCard}
+          ${debriefCard}
           ${ins ? `
           <div class="card">
             <p class="card__kicker">Noticed</p>
@@ -1520,6 +1739,7 @@ ${list}`,
     on("[data-act=checkin]", () => set({ checkin: { step: "lost", lost: "" } }));
     on("[data-act=visit]", () => set({ tab: "buddy" }));
     on("[data-act=reset-inline]", resetPrototype);
+    on("[data-act=export]", exportLedger);
     wireBuddyInteractions();
     maybeGenerateInsight();
     maybeWeighEntries();
@@ -1528,8 +1748,19 @@ ${list}`,
     const r = progressReport();
     if (r && LLM.enabled() && document.getElementById("welcome-line")) {
       swapIn("welcome-line", LLM.ask(
-        `Write the welcome-back line (1–2 sentences, Alright Chief voice) for a dad opening the app. Reflect his progress so he can see how far he's come. Data: ${JSON.stringify({ weeks: r.weeks, fadingComplaint: r.declined && r.declined.theme.label, earlyExample: r.declined && r.declined.example, growing: r.risen && r.risen.theme.label, recentGain: r.risen && r.risen.example })}`,
+        `Write the welcome-back line (1–2 sentences, Alright Chief voice) for a dad opening the app. Reflect his progress so he can see how far he's come. Data: ${JSON.stringify({ chapter: stageInfo().label, weeks: r.weeks, fadingComplaint: r.declined && r.declined.theme.label, earlyExample: r.declined && r.declined.example, growing: r.risen && r.risen.theme.label, recentGain: r.risen && r.risen.example })}`,
         140
+      ));
+    }
+    // …and the Sunday debrief, from the week's actual entries
+    if (weeklyDebrief() && LLM.enabled() && document.getElementById("debrief-line")) {
+      const wk = weekEntries().map((e) => `${e.dateKey} — lost: "${e.lost}" / gained: "${e.gained}"`).join("\n");
+      swapIn("debrief-line", LLM.ask(
+        `It's Sunday. Read this dad's week back to him in the Alright Chief voice — a readback, not a review. Hold both columns honestly; two or three short sentences, reference his actual words.
+Chapter of the journey: ${stageInfo().llm}
+His week:
+${wk}`,
+        180
       ));
     }
   }
@@ -1596,6 +1827,7 @@ ${list}`,
         </div>
         <div class="screen-footer">
           <p class="micro" style="text-align:center">The imbalance is the point. Some weeks one side is heavier. The app doesn't fix it — it shows you where you are.</p>
+          <button class="btn btn--quiet" data-act="export" style="align-self:center">Keep a copy — export the ledger</button>
         </div>
       </div>`;
   }
@@ -1604,10 +1836,21 @@ ${list}`,
   function buddyTab() {
     if (!buddyScene) buddyScene = rollScene();
     return `
-      <div class="buddy-room">
+      <div class="buddy-room buddy-room--${esc(buddyScene.dp || daypart())}">
         <div class="buddy-holder buddy-holder--room" data-holder>${buddyVisual({}, buddyScene)}</div>
         <p class="buddy-line buddy-line--float" id="buddy-line">${esc(sceneCaption(buddyScene))}</p>
       </div>`;
+  }
+
+  // The room remembers: props from the activities he's learned from the dad's
+  // own words live on his floor, even when he isn't using them.
+  function roomProps() {
+    const inUse = buddyScene && buddyScene.pose === "activity" && buddyScene.activity && buddyScene.activity.prop;
+    const seen = [];
+    for (const a of learnedActivities()) {
+      if (a.prop && a.prop !== inUse && !seen.includes(a.prop)) seen.push(a.prop);
+    }
+    return seen.slice(0, 2);
   }
 
   // Oddballz-style handling: tap to poke, double-tap to spin, press-and-drag
@@ -1637,10 +1880,12 @@ ${list}`,
       chiefRig = new Chief.Rig(holder, state.buddy.config, buddyScene || { pose: "attentive" }, {
         onResize: () => render(),
         onSnap: () => {
-          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()) };
+          buzz("snap");
+          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()), dp: daypart() };
           render();
         },
         onReact: (type) => {
+          buzz(type);
           // don't let bounce spam overwrite meatier lines
           const now = Date.now();
           if (type === "bounce" && now - lastReact < 700) return;
@@ -1648,7 +1893,7 @@ ${list}`,
           const pool = REACT_LINES[type];
           if (pool) react(pool, now);
         },
-      });
+      }, { roomProps: roomProps() });
       return;
     }
 
@@ -1668,6 +1913,7 @@ ${list}`,
       // drop the class once the squish finishes so idle breathing resumes
       svg.addEventListener("animationend", () => svg.classList.remove("is-poked"), { once: true });
       pokes++;
+      buzz("poke");
       react(POKE_LINES, pokes + new Date().getMinutes());
     };
 
@@ -1675,6 +1921,7 @@ ${list}`,
       svg.classList.remove("is-poked");
       svg.classList.add("is-spinning");
       svg.addEventListener("animationend", () => svg.classList.remove("is-spinning"), { once: true });
+      buzz("spin");
       react(SPIN_LINES, Date.now());
     };
 
@@ -1703,6 +1950,7 @@ ${list}`,
         dragging = true;
         svg.classList.add("is-grabbed");
         holder.classList.add("is-held");
+        buzz("grab");
         react(GRAB_LINES, Date.now());
       }
       if (dragging) {
@@ -1723,11 +1971,13 @@ ${list}`,
         holder.classList.add("is-dropping");
         holder.style.transform = "";
         setTimeout(() => holder.classList.remove("is-dropping"), 650);
+        buzz("drop");
         react(DROP_LINES, Date.now());
       } else {
         // Mid-activity or mid-nap: the first tap snaps him out of it.
         if (buddyScene && buddyScene.pose !== "attentive") {
-          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()) };
+          buzz("snap");
+          buddyScene = { pose: "attentive", snapLine: pick(SNAP_LINES, Date.now()), dp: daypart() };
           render();
           return;
         }
@@ -1753,13 +2003,24 @@ ${list}`,
 
     if (c.step === "done") {
       const name = esc(state.buddy?.name || "your buddy");
+      const today = todayEntry();
+      const flagged = today && (crisisCheck(today.lost) || crisisCheck(today.gained));
       app.innerHTML = `
         <div class="screen donescreen">
+          <div class="checkin-chief" aria-hidden="true">${buddyVisual({ small: true }, { pose: "excited" })}</div>
           <div class="done-tick">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
           </div>
           <h2 class="q-text" id="done-line">${esc(pick(DONE_LINES, dayN))}</h2>
           <p class="q-sub" style="max-width:270px">Not scored. Not streaked. Just noticed.</p>
+          ${flagged ? `
+          <div class="signpost">
+            <p>Some of what you put down today reads heavier than a ledger line, chief. This app is a mirror, not a hand — but hands exist:</p>
+            <p><strong>Samaritans</strong> — 116 123, free, any hour.<br/>
+               <strong>PANDAS</strong> — dads' perinatal mental health, 0808 1961 776.<br/>
+               <strong>NHS 111</strong> — option 2 for urgent mental health support.</p>
+            <p class="micro">Saying it here still counted. Saying it to a person counts double. Nothing you write leaves this device.</p>
+          </div>` : ""}
           <div class="screen-footer" style="width:100%">
             <button class="btn btn--primary" data-act="see-buddy">Go and see ${name}</button>
             <button class="btn btn--quiet" data-act="home">Back to today</button>
@@ -1768,13 +2029,12 @@ ${list}`,
       on("[data-act=see-buddy]", () => set({ checkin: null, tab: "buddy" }));
       on("[data-act=home]", () => set({ checkin: null, tab: "today" }));
       // Claude reflects on the actual entry — swaps in over the scripted line
-      const today = todayEntry();
       if (today && LLM.enabled()) swapIn("done-line", llmReflection(today.lost, today.gained));
       return;
     }
 
     const isLost = c.step === "lost";
-    const prompt = isLost ? pick(LOST_PROMPTS, dayN) : pick(GAINED_PROMPTS, dayN);
+    const prompt = isLost ? pick(checkinPrompts(true), dayN) : pick(checkinPrompts(false), dayN);
 
     app.innerHTML = `
       <div class="screen convo">
@@ -1783,6 +2043,7 @@ ${list}`,
           <span class="micro">${isLost ? "1 of 2" : "2 of 2"}</span>
         </div>
         <div class="convo__body">
+          <div class="checkin-chief" id="checkin-chief" aria-hidden="true">${buddyVisual({ small: true }, { pose: "attentive" })}</div>
           <p class="checkin-side ${isLost ? "checkin-side--lost" : "checkin-side--gained"}">${isLost ? "The lost column" : "The gained column"}</p>
           <h2 class="q-text">${esc(prompt.q)}</h2>
           <p class="q-sub">${esc(prompt.sub)}</p>
@@ -1797,6 +2058,13 @@ ${list}`,
       placeholder: isLost ? "e.g. a lie-in. A whole film. A clear head." : "e.g. patience you didn't know you had.",
       submitLabel: isLost ? "Next" : "Put it in the ledger",
       maxLength: 140,
+      // He attends the check-in: perks up and leans in while the mic is live.
+      onListen: (onAir) => {
+        const el = app.querySelector("#checkin-chief");
+        if (!el) return;
+        el.classList.toggle("is-listening", onAir);
+        el.innerHTML = buddyVisual({ small: true }, { pose: onAir ? "excited" : "attentive" });
+      },
       onSubmit: (val) => {
         if (isLost) {
           state.checkin = { step: "gained", lost: val };
