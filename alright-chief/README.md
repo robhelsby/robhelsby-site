@@ -1,0 +1,164 @@
+# Alright Chief — first-pass prototype (v0.1)
+
+A clickable prototype of the **Still Me** app concept, named **Alright Chief** for this version.
+Built from the Still Me workshop brief (Beyond the Studio) with the Alright Chief strategy doc
+setting the wider tone and positioning.
+
+> A transition app for new dads who want to feel like themselves while becoming the father
+> their family needs.
+
+## Run it
+
+It's a static site — no build step, no dependencies.
+
+```sh
+# from the repo root
+python3 -m http.server 8000
+# open http://localhost:8000/alright-chief/
+```
+
+Or deploy with the rest of the site; it lives entirely under `/alright-chief/`.
+
+## What's in the prototype
+
+Mapped to the product shape in the workshop brief:
+
+1. **Onboarding — conversational, one question at a time.** Three "dad admin" questions
+   (baby's age, first/second, who's at home), then the pivot to three genuinely personal
+   questions (the old Saturdays, what he misses, what he loved). Voice-first input with a
+   text fallback (see below).
+2. **Character — the chief.** A living creature, not an illustration: `chief.js` is a
+   dedicated character runtime — a structured SVG rig driven by a requestAnimationFrame
+   loop with spring physics, in the spirit of the 90s virtual-pet game Oddballz. **Detailed
+   eyes**: white sclera, dark pupils with dual highlights that **track your finger**,
+   expressive lids (bored half-lids, sad tilt, happy bottom-lids, heart-eyes), real blinks,
+   and drowsy drooping if you ignore him. **Free-form handling**: poke him (head, belly and
+   toes react differently), stroke him slowly to pet (hearts), wiggle to tickle, double-tap
+   to spin, pick him up by the scruff and dangle him — or **launch him** and he flies,
+   bounces off the floor and walls with squash-and-stretch, and picks himself up. His room is
+   the **whole screen** — a viewport-sized physics world with walls at the screen edges, so
+   he can be carried and thrown anywhere without clipping. **Jointed limbs**: arms and legs
+   are live two-segment chains that go ragdoll when he's carried (hanging toward true
+   down), flail mid-air, and ease back on landing. Tail wags
+   faster the more you play with him. Scenes (sleeping, keep-ups, raving, hobbies with
+   props) run inside the same rig; tap to snap him out. Old saves migrate automatically.
+3. **Daily submission — The Balance.** One entry a day: one thing lost, one thing gained.
+   Not scored, no streaks. Spoken by default, typed if preferred.
+4. **The Balance ledger.** Two columns filling over time, deliberately never equal.
+5. **Observe / interact.** The chief listens to everything the dad tells the app —
+   onboarding answers and both ledger columns — and learns activities from it (gym,
+   five-a-side, the bike, vinyl, a quiet pint, films, gaming, reading, fishing, coffee,
+   golf, cooking, running). When you visit he's usually mid-something: one of *your*
+   activities with its prop, or a generic idle — standing about bored, asleep on his
+   feet, whistling. **Tap him to snap him out of it** (startled "!", deadpan line),
+   then interactions are Oddballz-style: tap to poke, double-tap to spin, press-and-drag
+   to pick him up by the scruff — he dangles and sways, then drops back with a bounce.
+6. **Insights.** After a few entries the app starts reflecting the ledger back —
+   "a mirror, not a notification."
+7. **The Balance — measured honestly.** Lost and gained are weighed the **same way**
+   (recent volume + how much each entry carries); neither side is treated as "good". The
+   Balance tab shows a two-sided weigh that **leans whichever way is genuinely heavier** —
+   a lost-heavy stretch is shown as heavy and explicitly validated ("Some weeks just are —
+   nothing here needs fixing"), never scored as failure. The chief's resting mood reflects
+   this *current weather* and is allowed to sit low; it is **not** a one-way "settling"
+   score that only climbs.
+8. **Transition reflection.** Separately from the Balance, a theme engine tracks how the
+   ledger *changes over time* and reflects it back honestly on the Today screen — it will
+   say "going out used to be here most weeks; lately, not once — not gone, quieter" when a
+   theme genuinely eases, **and** "sleep's still in your lost column most weeks; that's
+   allowed, you're not behind" when it hasn't. **Push notifications** (Web Notifications
+   API; enable + fire a nudge from the side panel) draw on the same honest signal. Claude
+   rewrites these live when connected.
+9. **The 5-minute rule, privacy-first** — no social layer, all data in `localStorage`.
+10. **Journey chapters — the baby's age shapes the voice.** Onboarding asks the baby's age,
+    and the whole app knows the difference between expecting, the newborn fog (0–3 months),
+    the first year, a toddler and a few years in: the check-in questions change per chapter,
+    the welcome line knows where he is before the ledger can show change, the chief's
+    captions pick up chapter flavour, and Claude gets the chapter as context so generated
+    copy never talks to a rookie like a veteran (or vice versa).
+11. **The chief attends the check-in.** He stands quietly above the question, perks up and
+    leans in while the mic is live (wrapper-level animation only — iOS-safe), and turns up
+    delighted on the done screen. The entry is *to* somebody.
+12. **The room keeps your hours.** The buddy room's light shifts through dawn, day, dusk and
+    night, and the scene roll respects the clock — visit late and he's usually asleep
+    ("It's late, chief. He's got the right idea."), visit early and he might be up on a
+    morning wander. Captions know the time too.
+13. **The room remembers.** Props from the activities he's learned from the dad's own words
+    (the vinyl, the controller…) live on his floor even when he isn't using them.
+14. **Haptics.** Poke, grab, throw, bounce, land, pet, tickle — each gesture has its own
+    small vibration pattern (`navigator.vibrate`, a no-op where unsupported).
+15. **The Sunday debrief.** On Sundays the Today screen reads the week back: how many days
+    made it in, and the heaviest line from each column side by side. A readback, not a
+    review; Claude rewrites it from the actual entries when connected.
+16. **Crisis rail.** A deliberately narrow, on-device check for genuinely dark entries adds
+    gentle signposting (Samaritans, PANDAS, NHS 111) to the done screen. No diagnosing,
+    no flag stored, nothing leaves the device.
+17. **The ledger as a keepsake.** "Keep a copy" on the Balance tab exports the whole ledger
+    as a plain Markdown file — his words are his, no lock-in.
+
+## Voice-first input
+
+The lost/gained check-in and the personal onboarding questions default to a **tap-to-talk
+voice interface** built on the browser's Web Speech API (`SpeechRecognition`, `en-GB`):
+
+- Tap the mic, say it, watch the live transcript land; tap again to stop, add more, or send.
+- **Editing a misheard entry:** an &times; button on the transcript (and the text field)
+  wipes it, or just say **"let's reset"** and the entry clears verbally.
+- **"Rather type it?"** switches to the text input (and **"Say it instead"** switches back) —
+  text is a fully considered fallback, not a consolation prize. The last-used mode is
+  remembered.
+- If speech recognition isn't supported (e.g. Firefox) or mic access is denied, the
+  component falls back to text automatically. Voice works best in Chrome/Edge/Safari over
+  HTTPS or localhost.
+
+## LLM language interface (Claude)
+
+The conversational voice is designed to be generated live by Claude (`claude-opus-4-8`).
+Two ways to connect, in order of preference:
+
+1. **The proxy (production path).** A thin backend in [`proxy/`](proxy/) — a Cloudflare
+   Worker, ~5 minutes to deploy — holds the API key as a server-side secret. Point the app
+   at it (set `DEFAULT_PROXY_URL` in `app.js`, or paste the URL into **Connect Claude** /
+   the side panel) and **every visitor gets Claude with zero setup**; no key ever ships to
+   a client. The worker pins the model, caps tokens and can pin allowed origins.
+2. **A pasted key (dev fallback).** Calls the Claude Messages API **directly from the
+   browser** using the `anthropic-dangerous-direct-browser-access` CORS opt-in. Stored in
+   `localStorage` only, used only when no proxy is set. Never hardcode a key into the page.
+- LLM-powered moments, each with an instant scripted fallback (the prototype fully works
+  without a key):
+  - **Onboarding acknowledgements** — Claude reacts to what the dad actually wrote before
+    the next question.
+  - **Post-check-in reflection** — a closing line generated from today's lost/gained pair.
+  - **Insights** — generated from the whole ledger + profile, cached once per day.
+- The voice is constrained by a system prompt encoding the brand: British, older-brother,
+  warm-not-soft, no wellness language, no cheerleading, one or two sentences max.
+
+## Avatar pipeline (Midjourney)
+
+Midjourney has no public API, so the pipeline is structured as:
+
+1. The app **composes a bespoke Midjourney prompt** in the house character style —
+   bean-shaped matte-black mascot, white oval eyes, purple mitten hands, his generated
+   hat and theme — caught doing an activity learned from the dad's own answers.
+   *Copy it from the side panel.*
+2. The prompt is rendered in Midjourney (design partner / batch job in production).
+3. The resulting image is **plugged back in as the buddy** — paste the image URL in the
+   side panel and it replaces the SVG everywhere (reveal, home, buddy screen).
+
+The procedural SVG creature is the live in-app stand-in so the experience is complete
+without the render.
+
+## Prototype controls (side panel, desktop)
+
+- **Load demo data** — a "month three" account (profile, named buddy, 12 ledger entries)
+  so insights and the ledger can be seen without 12 real days.
+- **Reset prototype** — wipes all local state.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `index.html` | Phone frame + side panel |
+| `styles.css` | All styling (Bricolage Grotesque display / Inter body, sage-green + putty-grey palette) |
+| `chief.js` | The character runtime: SVG rig, eyes, physics, gestures, behaviour |
+| `app.js` | State, screens, Balance/progress engines, LLM layer, Midjourney pipeline |
