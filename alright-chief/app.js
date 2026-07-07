@@ -594,9 +594,15 @@ Hard rules:
 - Address the user as "chief" sparingly, at most once.
 - British English spelling.`;
 
+  // Set this to your deployed proxy (see proxy/README.md) and every visitor
+  // gets Claude with zero setup — no key ever ships to, or is stored on, a
+  // client. Leave empty to fall back to the per-device modes below.
+  const DEFAULT_PROXY_URL = "";
+
   const LLM = {
     model: "claude-opus-4-8",
     storageKey: "alrightchief_api_key",
+    proxyStorageKey: "alrightchief_proxy_url",
     getKey() {
       try { return localStorage.getItem(this.storageKey) || ""; } catch (e) { return ""; }
     },
@@ -607,20 +613,36 @@ Hard rules:
       } catch (e) { /* private mode */ }
       updateLLMStatus();
     },
-    enabled() { return this.getKey().length > 0; },
+    // The proxy is the production path: the key stays on the server, the
+    // browser only ever sends content. A device-level override can be pasted
+    // in the connect sheet; DEFAULT_PROXY_URL serves everyone else.
+    getProxy() {
+      try { return localStorage.getItem(this.proxyStorageKey) || DEFAULT_PROXY_URL; } catch (e) { return DEFAULT_PROXY_URL; }
+    },
+    setProxy(url) {
+      try {
+        if (url) localStorage.setItem(this.proxyStorageKey, url);
+        else localStorage.removeItem(this.proxyStorageKey);
+      } catch (e) { /* private mode */ }
+      updateLLMStatus();
+    },
+    enabled() { return this.getProxy().length > 0 || this.getKey().length > 0; },
 
     async ask(prompt, maxTokens = 200) {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const proxy = this.getProxy();
+      const headers = { "content-type": "application/json" };
+      if (!proxy) {
+        // Dev fallback: direct browser call with a locally stored key.
+        headers["x-api-key"] = this.getKey();
+        headers["anthropic-version"] = "2023-06-01";
+        // Required opt-in for direct browser (CORS) calls to the Claude API
+        headers["anthropic-dangerous-direct-browser-access"] = "true";
+      }
+      const res = await fetch(proxy || "https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": this.getKey(),
-          "anthropic-version": "2023-06-01",
-          // Required opt-in for direct browser (CORS) calls to the Claude API
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
+        headers,
         body: JSON.stringify({
-          model: this.model,
+          model: this.model, // informational when proxied; the proxy pins its own
           max_tokens: maxTokens,
           system: VOICE_SYSTEM,
           messages: [{ role: "user", content: prompt }],
@@ -636,44 +658,52 @@ Hard rules:
 
   function updateLLMStatus() {
     const el = document.getElementById("llm-status");
-    if (el) el.textContent = LLM.enabled() ? "Claude connected" : "scripted fallback";
+    if (el) el.textContent = LLM.getProxy() ? "Claude connected via proxy" : LLM.getKey() ? "Claude connected (key on this device)" : "scripted fallback";
   }
 
   // In-app, mobile-reachable way to connect Claude (the side panel is desktop-only).
   function openConnectSheet() {
     if (document.getElementById("connect-sheet")) return;
     const on = LLM.enabled();
+    const viaProxy = !!LLM.getProxy();
     const wrap = document.createElement("div");
     wrap.id = "connect-sheet";
     wrap.className = "connect-sheet";
     wrap.innerHTML = `
       <div class="connect-card" role="dialog" aria-label="Connect Claude">
         <h3>Connect Claude</h3>
-        <p>Paste your Anthropic API key. It's stored only in this browser and sent straight to Claude — it powers the voice, the welcome lines, and weighing each entry by how much it genuinely means.</p>
+        <p>Claude powers the voice, the welcome lines, and weighing each entry by how much it genuinely means.</p>
+        <p class="micro"><strong>Proxy URL</strong> — the production way. The key lives on a small server (see <code>proxy/README.md</code>); this browser only ever sends content.</p>
+        <input type="url" id="cs-proxy" placeholder="https://alright-chief-proxy.….workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(LLM.getProxy())}" />
+        <p class="micro"><strong>Or an API key</strong> — dev fallback. Stored only in this browser, sent straight to Claude; used only when no proxy is set.</p>
         <input type="password" id="cs-key" placeholder="sk-ant-…" autocomplete="off" autocapitalize="off" spellcheck="false" />
-        <p class="micro" id="cs-status">${on ? "Claude is connected." : ""}</p>
-        <button class="btn btn--primary" data-cs="save" type="button">${on ? "Update key" : "Connect"}</button>
+        <p class="micro" id="cs-status">${on ? (viaProxy ? "Claude is connected via the proxy." : "Claude is connected with a key on this device.") : ""}</p>
+        <button class="btn btn--primary" data-cs="save" type="button">${on ? "Update" : "Connect"}</button>
         ${on ? `<button class="btn btn--ghost" data-cs="clear" type="button">Disconnect</button>` : ""}
         <button class="btn btn--quiet" data-cs="cancel" type="button">Close</button>
-        <p class="micro">Get a key at console.anthropic.com. For this prototype the key lives only on your device; a production app would route calls through a backend so no key ever ships to the client.</p>
+        <p class="micro">Never hardcode a key into the page — anyone could view-source and steal it. The proxy exists so no key ever ships to a client.</p>
       </div>`;
     document.body.appendChild(wrap);
     const close = () => wrap.remove();
     const keyEl = wrap.querySelector("#cs-key");
+    const proxyEl = wrap.querySelector("#cs-proxy");
     const statusEl = wrap.querySelector("#cs-status");
     wrap.addEventListener("click", (e) => { if (e.target === wrap) close(); });
     wrap.querySelector("[data-cs=cancel]").addEventListener("click", close);
     const clr = wrap.querySelector("[data-cs=clear]");
-    if (clr) clr.addEventListener("click", () => { LLM.setKey(""); close(); render(); });
+    if (clr) clr.addEventListener("click", () => { LLM.setKey(""); LLM.setProxy(""); close(); render(); });
     wrap.querySelector("[data-cs=save]").addEventListener("click", () => {
-      const v = keyEl.value.trim();
-      if (!v) { statusEl.textContent = "Paste a key first."; return; }
-      if (!/^sk-ant-/.test(v)) { statusEl.textContent = "That doesn't look like an Anthropic key (sk-ant-…). Connecting anyway."; }
-      LLM.setKey(v);
+      const proxy = proxyEl.value.trim();
+      const key = keyEl.value.trim();
+      if (!proxy && !key && !LLM.enabled()) { statusEl.textContent = "Paste a proxy URL or a key first."; return; }
+      if (proxy && !/^https:\/\//.test(proxy)) { statusEl.textContent = "The proxy URL should start with https://"; return; }
+      if (key && !/^sk-ant-/.test(key)) { statusEl.textContent = "That doesn't look like an Anthropic key (sk-ant-…). Connecting anyway."; }
+      LLM.setProxy(proxy);
+      if (key) LLM.setKey(key);
       close();
       render();
     });
-    keyEl.focus();
+    (viaProxy || !on ? proxyEl : keyEl).focus();
   }
 
   // Swap generated copy into a live element if the user is still on that screen.
@@ -2149,15 +2179,20 @@ ${wk}`,
   if (seedBtn) seedBtn.addEventListener("click", seedDemo);
   if (resetBtn) resetBtn.addEventListener("click", resetPrototype);
 
-  // Language interface controls (Claude)
+  // Language interface controls (Claude) — proxy is the production path,
+  // a pasted key is the per-device dev fallback.
   const keyInput = document.getElementById("api-key-input");
+  const proxyInput = document.getElementById("proxy-url-input");
   const saveKey = document.getElementById("save-key");
   const clearKey = document.getElementById("clear-key");
+  if (proxyInput) proxyInput.value = LLM.getProxy();
   if (saveKey) saveKey.addEventListener("click", () => {
-    LLM.setKey(keyInput.value.trim());
+    if (proxyInput) LLM.setProxy(proxyInput.value.trim());
+    const k = keyInput.value.trim();
+    if (k) LLM.setKey(k);
     keyInput.value = "";
   });
-  if (clearKey) clearKey.addEventListener("click", () => LLM.setKey(""));
+  if (clearKey) clearKey.addEventListener("click", () => { LLM.setKey(""); LLM.setProxy(""); if (proxyInput) proxyInput.value = ""; });
   updateLLMStatus();
 
   // Avatar pipeline controls (Midjourney)

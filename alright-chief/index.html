@@ -35,13 +35,14 @@
 
       <div class="stage-note__section">
         <p class="stage-note__label">Language interface</p>
-        <p>Conversational copy is generated live by Claude when a key is connected; otherwise the scripted fallback voice is used. Status: <strong id="llm-status">scripted fallback</strong></p>
-        <input id="api-key-input" type="password" placeholder="Anthropic API key" autocomplete="off" />
+        <p>Conversational copy is generated live by Claude when connected; otherwise the scripted fallback voice is used. Status: <strong id="llm-status">scripted fallback</strong></p>
+        <input id="proxy-url-input" type="url" placeholder="Proxy URL (production path — see proxy/README.md)" autocomplete="off" />
+        <input id="api-key-input" type="password" placeholder="Anthropic API key (dev fallback)" autocomplete="off" />
         <div class="stage-note__row">
           <button type="button" id="save-key">Connect Claude</button>
           <button type="button" id="clear-key">Disconnect</button>
         </div>
-        <p class="stage-note__hint">Key is stored in this browser only and sent directly to the Claude API.</p>
+        <p class="stage-note__hint">The proxy holds the key server-side so nothing secret ever ships to a client — deploy it from <code>proxy/</code> in ~5 minutes. A pasted key stays in this browser only and is used when no proxy is set.</p>
       </div>
 
       <div class="stage-note__section">

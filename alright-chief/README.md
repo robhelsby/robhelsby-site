@@ -113,12 +113,17 @@ voice interface** built on the browser's Web Speech API (`SpeechRecognition`, `e
 
 ## LLM language interface (Claude)
 
-The conversational voice is designed to be generated live by Claude. The prototype calls the
-Claude Messages API (`claude-opus-4-8`) **directly from the browser** using the
-`anthropic-dangerous-direct-browser-access` CORS opt-in — fine for a prototype; in production
-this goes through a thin backend so the key never ships to the client.
+The conversational voice is designed to be generated live by Claude (`claude-opus-4-8`).
+Two ways to connect, in order of preference:
 
-- Connect a key in the **side panel** (desktop). It's stored in `localStorage` only.
+1. **The proxy (production path).** A thin backend in [`proxy/`](proxy/) — a Cloudflare
+   Worker, ~5 minutes to deploy — holds the API key as a server-side secret. Point the app
+   at it (set `DEFAULT_PROXY_URL` in `app.js`, or paste the URL into **Connect Claude** /
+   the side panel) and **every visitor gets Claude with zero setup**; no key ever ships to
+   a client. The worker pins the model, caps tokens and can pin allowed origins.
+2. **A pasted key (dev fallback).** Calls the Claude Messages API **directly from the
+   browser** using the `anthropic-dangerous-direct-browser-access` CORS opt-in. Stored in
+   `localStorage` only, used only when no proxy is set. Never hardcode a key into the page.
 - LLM-powered moments, each with an instant scripted fallback (the prototype fully works
   without a key):
   - **Onboarding acknowledgements** — Claude reacts to what the dad actually wrote before
