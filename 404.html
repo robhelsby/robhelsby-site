@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found &ndash; Rob Helsby</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0d0f0e">
+  <link rel="icon" href="/assets/images/site/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .not-found {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.5rem;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: var(--pad);
+    }
+    .not-found h1 {
+      margin: 0;
+      font-weight: 500;
+      font-size: clamp(2rem, 1.2rem + 3.5vw, 4.5rem);
+      line-height: 1;
+    }
+    .not-found p { margin: 0; max-width: 30em; color: var(--paper-muted); }
+  </style>
+</head>
+<body>
+  <main class="not-found">
+    <h1>This page doesn&rsquo;t exist.</h1>
+    <p>The link may be out of date, or the address mistyped.</p>
+    <p><a class="btn" href="/">Go to the homepage</a></p>
+  </main>
+</body>
+</html>
