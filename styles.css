@@ -643,11 +643,8 @@ a { color: inherit; }
 }
 .case__decision-label {
   display: block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
   font-weight: 500;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 @media (min-width: 48em) {
@@ -979,7 +976,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
 /* Portrait + hidden headshot reveal */
 .portrait {
   position: relative;
-  width: clamp(9rem, 6rem + 8vw, 12rem);
+  width: clamp(11rem, 6rem + 12vw, 17rem);
   -webkit-touch-callout: none;
   -webkit-user-select: none;
           user-select: none;
@@ -1000,7 +997,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   top: 0;
   left: 0;
   z-index: 20;
-  width: clamp(11rem, 8rem + 8vw, 14.5rem);
+  width: clamp(13rem, 7.5rem + 12vw, 19rem);   /* a little larger than the portrait */
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 0.75rem;

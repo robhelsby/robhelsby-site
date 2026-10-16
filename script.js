@@ -937,7 +937,7 @@
         if (!entry.isIntersecting) return;
         goals.classList.add("is-inview");
         goalsObserver.disconnect();
-      }, { threshold: 0.3, rootMargin: "0px 0px -15% 0px" });
+      }, { threshold: 0.1 });   // start drawing as soon as the list comes into view
       goalsObserver.observe(goals);
     }
 
