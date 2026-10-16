@@ -114,6 +114,8 @@ ffmpeg -i input.mp4 -c:v copy -an -movflags +faststart client-NN.mp4
 
 ## Performance notes
 
+- **After changing `styles.css` or `script.js`:** bump the `?v=` date at the end of their links in `index.html` (e.g. `?v=2026-10-16b` to `?v=2026-10-20`). That makes every browser fetch the new version instead of reusing a cached one.
+
 Please keep these habits; they're why the page is fast.
 
 - **Image formats and sizes:** use WebP and stick to the sizes above. Don't upload images straight from a design tool or camera.
