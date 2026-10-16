@@ -384,6 +384,126 @@
   /* ---------------------------------------------------------
      4. Media carousels - tap, drag or use the pips
      --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     Case study gallery - full-screen view of carousel media
+     --------------------------------------------------------- */
+  const gallery = (() => {
+    const ICONS = {
+      close: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>',
+      prev: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>',
+      next: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>',
+    };
+    let dialog, stage, counter;
+    let slides = [];
+    let index = 0;
+    let label = "";
+    let onClose = null;
+    let swipeX = null;
+    let swiped = false;
+    let openedAt = 0;
+
+    function build() {
+      dialog = document.createElement("dialog");
+      dialog.className = "gallery";
+      dialog.innerHTML = `
+        <div class="gallery__stage"></div>
+        <p class="gallery__count" aria-live="polite"></p>
+        <button class="gallery__btn gallery__close" type="button" aria-label="Close">${ICONS.close}</button>
+        <button class="gallery__btn gallery__prev" type="button" aria-label="Previous">${ICONS.prev}</button>
+        <button class="gallery__btn gallery__next" type="button" aria-label="Next">${ICONS.next}</button>`;
+      document.body.appendChild(dialog);
+      stage = dialog.querySelector(".gallery__stage");
+      counter = dialog.querySelector(".gallery__count");
+
+      dialog.querySelector(".gallery__close").addEventListener("click", () => dialog.close());
+      dialog.querySelector(".gallery__prev").addEventListener("click", () => show(index - 1));
+      dialog.querySelector(".gallery__next").addEventListener("click", () => show(index + 1));
+
+      dialog.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") { e.preventDefault(); show(index + 1); }
+        if (e.key === "ArrowLeft") { e.preventDefault(); show(index - 1); }
+      });
+
+      // Clicking the dark area around the media closes it (but not straight after a swipe)
+      dialog.addEventListener("click", (e) => {
+        if (swiped) { swiped = false; return; }
+        if (performance.now() - openedAt < 400) return; // the tap that opened it
+        if (e.target === dialog || e.target === stage) dialog.close();
+      });
+
+      // Swipe left / right on touch
+      stage.addEventListener("pointerdown", (e) => {
+        if (e.pointerType !== "mouse") swipeX = { x: e.clientX, y: e.clientY };
+      });
+      stage.addEventListener("pointerup", (e) => {
+        if (!swipeX) return;
+        const dx = e.clientX - swipeX.x;
+        const dy = e.clientY - swipeX.y;
+        swipeX = null;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          swiped = true;
+          show(index + (dx < 0 ? 1 : -1));
+        }
+      });
+      stage.addEventListener("pointercancel", () => { swipeX = null; });
+
+      dialog.addEventListener("close", () => {
+        stage.replaceChildren();
+        docEl.classList.remove("gallery-open");
+        onClose?.(index);
+      });
+    }
+
+    function media(s) {
+      let el;
+      if (s.type === "video") {
+        el = document.createElement("video");
+        el.src = s.src;
+        if (s.poster) el.poster = s.poster;
+        el.muted = true;
+        el.loop = true;
+        el.playsInline = true;
+        el.setAttribute("aria-label", s.alt);
+        if (reduceMotion.matches) el.controls = true;
+        else el.autoplay = true;
+      } else {
+        el = new Image();
+        el.src = s.src;
+        el.alt = s.alt;
+        el.decoding = "async";
+      }
+      el.className = "gallery__media";
+      el.draggable = false;
+      return el;
+    }
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      const el = media(slides[index]);
+      stage.replaceChildren(el);
+      if (el.tagName === "VIDEO" && el.autoplay) el.play().catch(() => {});
+      counter.textContent = `${label} – ${index + 1} / ${slides.length}`;
+      // Fetch the neighbours so moving on is instant
+      [index + 1, index - 1].forEach((n) => {
+        const s = slides[(n + slides.length) % slides.length];
+        if (s.type === "image") new Image().src = s.src;
+      });
+    }
+
+    function open(items, start, name, done) {
+      if (!dialog) build();
+      slides = items;
+      label = name;
+      onClose = done;
+      docEl.classList.add("gallery-open");
+      openedAt = performance.now();
+      dialog.showModal();
+      show(start);
+    }
+
+    return { open };
+  })();
+
   function initCarousel(root) {
     const viewport = root.querySelector(".carousel__viewport");
     const track = root.querySelector(".carousel__track");
@@ -420,7 +540,7 @@
       root.classList.add("is-single");
     } else {
       viewport.tabIndex = 0;
-      viewport.setAttribute("aria-label", `${label} media. Use the arrow keys to browse.`);
+      viewport.setAttribute("aria-label", `${label} media. Use the arrow keys to browse, or Enter to enlarge.`);
     }
 
     // Only the visible slide's video plays, and only while on screen
@@ -462,7 +582,22 @@
       syncVideos();
     }
 
-    // Pointer handling: a tap moves on one, a horizontal drag swipes
+    // Open the full-screen gallery at the current slide
+    function enlarge() {
+      const list = items.map((item) => {
+        const m = item.querySelector("img, video");
+        return {
+          type: m.tagName === "VIDEO" ? "video" : "image",
+          src: m.dataset.src || m.getAttribute("src"),          // the full 1600px file
+          poster: m.dataset.poster || m.getAttribute("poster"),
+          alt: m.getAttribute("alt") || m.getAttribute("aria-label") || "",
+        };
+      });
+      items.forEach((item) => item.querySelector("video")?.pause());
+      gallery.open(list, index, label, (last) => goTo(last, last !== index));
+    }
+
+    // Pointer handling: a tap opens the gallery, a horizontal drag swipes
     let pointerId = null;
     let startX = 0;
     let startY = 0;
@@ -517,11 +652,17 @@
         } else {
           goTo(index);
         }
-      } else if (!axis && !cancelled) {
-        goTo(index + 1); // tap: next, looping round
       }
+      dragged = axis === "x";
       axis = null;
     }
+
+    // A tap or click (not the end of a drag) opens the gallery
+    let dragged = false;
+    viewport.addEventListener("click", () => {
+      if (dragged) { dragged = false; return; }
+      enlarge();
+    });
 
     viewport.addEventListener("pointerup", (e) => release(e, false));
     viewport.addEventListener("pointercancel", (e) => release(e, true));
@@ -529,6 +670,7 @@
     viewport.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight") { e.preventDefault(); goTo(index + 1); }
       if (e.key === "ArrowLeft") { e.preventDefault(); goTo(index - 1); }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); enlarge(); }
     });
 
     if ("IntersectionObserver" in window) {
@@ -543,7 +685,7 @@
       const cursor = document.createElement("span");
       cursor.className = "carousel__cursor";
       cursor.setAttribute("aria-hidden", "true");
-      cursor.textContent = "Drag";
+      cursor.textContent = "View";
       viewport.appendChild(cursor);
       root.classList.add("has-cursor");
 
