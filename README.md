@@ -90,7 +90,7 @@ ffmpeg -i input.mp4 -c:v copy -an -movflags +faststart client-NN.mp4
 - **Speed:** in `script.js`, `FRAME_MS` (0.5 seconds per face).
 
 ### Portrait and testimonial photo
-- **Portrait:** `assets/images/about/portrait.webp`, 480×480.
+- **Portrait:** `assets/images/about/portrait.webp`, 600×600.
 - **Testimonial:** `assets/images/testimonials/<name>.webp`, 240×240.
 - **Preparing the files:** export them clean, in colour or black and white. The greyscale and animated grain are added in code (`--grain` in `styles.css` sets the strength).
 
@@ -136,7 +136,7 @@ Please keep these habits; they're why the page is fast.
 ## Before launch
 
 - [ ] Add the registered office address to the footer (Companies House requirement).
-- [ ] Re-export the portrait at 480×480 and Claudia's photo at 240×240, keeping the same names.
+- [ ] Re-export the portrait at 600×600 and Claudia's photo at 240×240, keeping the same names.
 - [ ] Check both case study videos play on iPhone Safari and desktop Chrome.
 - [ ] Delete unused files: `assets/fav/`, `assets/images/rh-opengraph.jpg`, `assets/images/site/footer-glow.png`, `assets/images/about/headshots/rh-medley.gif`, and the placeholder files `gdgd` and `ysgs`.
 - [ ] Check the link preview with LinkedIn's Post Inspector after launch.

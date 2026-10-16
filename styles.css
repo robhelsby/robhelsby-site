@@ -122,7 +122,7 @@ a { color: inherit; }
 
 .hero__top {
   position: relative;
-  flex: 0 0 auto;
+  flex: 1 1 auto;   /* the image takes any spare height, so nothing is left empty below */
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -243,7 +243,7 @@ a { color: inherit; }
 
 .hero__panel {
   position: relative;
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   padding: 0.25rem var(--pad) var(--bar-space);
 }
 
