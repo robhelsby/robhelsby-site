@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link rel="stylesheet" href="/styles.css?v=2026-10-16b">
+  <link rel="stylesheet" href="/styles.css?v=2026-10-16c">
   <!-- Bricolage Grotesque, trimmed to the single "&" it's used for -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@96,400&amp;text=%26&amp;display=swap" media="print" onload="this.media='all'">
 
@@ -42,7 +42,7 @@
   <script>
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("intro");
   </script>
-  <script src="/script.js?v=2026-10-16b" defer></script>
+  <script src="/script.js?v=2026-10-16c" defer></script>
 
   <script type="application/ld+json">
   {
@@ -72,8 +72,8 @@
     <div class="site-nav__bar">
       <ul class="site-nav__list nav-swap is-shown">
         <li><a class="site-nav__link" href="#services">Services</a></li>
-        <li><a class="site-nav__link" href="#experience">Experience</a></li>
-        <li><a class="site-nav__link" href="#approach">Approach</a></li>
+        <li><a class="site-nav__link" href="#experience">Work</a></li>
+        <li><a class="site-nav__link" href="#approach">How I work</a></li>
         <li><a class="site-nav__link" href="#contact">Contact</a></li>
       </ul>
       <!-- Mobile only: current section label + menu button -->
@@ -107,7 +107,7 @@
         </button>
 
         <div class="hero__heading">
-          <p class="hero__eyebrow">Taking on new clients for Q1 2027</p>
+          <p class="hero__eyebrow">Booking Q1 2027 engagements</p>
           <h1 class="hero__title" id="hero-title">
             <span class="hero__name">Rob Helsby</span> is a Strategy <span class="amp">&amp;</span>&nbsp;Experience Director focused on brand and product decision-making.
           </h1>
@@ -155,6 +155,32 @@
       <div class="section__inner">
         <h2 class="section__title" id="services-title">What to hire me for</h2>
         <p class="section__intro">Independent engagements for marketing and digital leaders at established brands.</p>
+
+        <!-- At a glance: each item jumps to the full description below -->
+        <ul class="svc-overview" aria-label="Services at a glance">
+          <li class="svc-overview__item">
+            <a class="svc-overview__link" href="#svc-audit">
+              <span class="svc-overview__tag">Most clients start here</span>
+              <span class="svc-overview__name">Decision Audit</span>
+              <span class="svc-overview__promise">Prove it&rsquo;s the right decision before you commit spend.</span>
+              <span class="svc-overview__price">From &pound;6,000<br>Under 30 days</span>
+            </a>
+          </li>
+          <li class="svc-overview__item">
+            <a class="svc-overview__link" href="#svc-fractional">
+              <span class="svc-overview__name">Fractional Design Leadership</span>
+              <span class="svc-overview__promise">Senior design leadership, without the permanent hire.</span>
+              <span class="svc-overview__price">From &pound;4,000 a month<br>4&ndash;6 days a month</span>
+            </a>
+          </li>
+          <li class="svc-overview__item">
+            <a class="svc-overview__link" href="#svc-capability">
+              <span class="svc-overview__name">Capability Building</span>
+              <span class="svc-overview__promise">Deliver the project, and leave your team able to run it.</span>
+              <span class="svc-overview__price">From &pound;30,000<br>3+ months</span>
+            </a>
+          </li>
+        </ul>
 
         <article class="service" aria-labelledby="svc-audit">
           <h3 class="service__title" id="svc-audit">Decision Audit</h3>
@@ -240,11 +266,11 @@
           <div class="case__media carousel" data-carousel data-label="British Army">
             <div class="carousel__viewport">
               <div class="carousel__track">
-                <figure class="carousel__slide"><img src="/assets/images/work/army/army-01.webp" srcset="/assets/images/work/army/army-01-960.webp 960w, /assets/images/work/army/army-01.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Research wall pinned with the three guiding principles: Modernity, Excitement and Unity" width="1600" height="900" loading="lazy" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-02.webp" data-srcset="/assets/images/work/army/army-02-960.webp 960w, /assets/images/work/army/army-02.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Wireframes and page designs for the British Army website pinned to a wall" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-03.webp" data-srcset="/assets/images/work/army/army-03-960.webp 960w, /assets/images/work/army/army-03.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="British Army website page for the Second Lieutenant rank, with its rank insignia" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-04.webp" data-srcset="/assets/images/work/army/army-04-960.webp 960w, /assets/images/work/army/army-04.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="British Army website screens showing statistics, a news spotlight and careers content" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-05.webp" data-srcset="/assets/images/work/army/army-05-960.webp 960w, /assets/images/work/army/army-05.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Soldier Magazine archive on the British Army website, with covers from the 1940s" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img src="/assets/images/work/army/army-01.webp" srcset="/assets/images/work/army/army-01-960.webp 960w, /assets/images/work/army/army-01.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Research wall pinned with the three guiding principles: Modernity, Excitement and Unity" width="1600" height="900" loading="lazy" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-02.webp" data-srcset="/assets/images/work/army/army-02-960.webp 960w, /assets/images/work/army/army-02.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Wireframes and page designs for the British Army website pinned to a wall" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-03.webp" data-srcset="/assets/images/work/army/army-03-960.webp 960w, /assets/images/work/army/army-03.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="British Army website page for the Second Lieutenant rank, with its rank insignia" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-04.webp" data-srcset="/assets/images/work/army/army-04-960.webp 960w, /assets/images/work/army/army-04.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="British Army website screens showing statistics, a news spotlight and careers content" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/army/army-05.webp" data-srcset="/assets/images/work/army/army-05-960.webp 960w, /assets/images/work/army/army-05.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Soldier Magazine archive on the British Army website, with covers from the 1940s" width="1600" height="900" decoding="async"></figure>
               </div>
             </div>
             <div class="carousel__pips"></div>
@@ -252,8 +278,9 @@
 
           <div class="case__copy">
             <p class="case__title">Aligned stakeholders to deliver an <span class="nowrap">award-winning</span> website, on time and on budget</p>
+            <p class="case__decision"><span class="case__decision-label">The decision</span>Align every stakeholder to three guiding principles before designing anything.</p>
             <p>The British Army website serves millions of people a year, from the families of serving soldiers to a new generation discovering military history. Stakeholders from Brand, Comms and Military Leadership all wanted different things. I aligned them around three guiding principles (Unity, Modernity, Excitement) and measured every decision against them.</p>
-            <p>Harvesting a century of history, I proposed an archive-led experience for the client&rsquo;s globally distributed Soldier Magazine. The website received the Award of Excellence from the International Communicator Awards.</p>
+            <p>Drawing on a century of history, I proposed an archive-led experience for the client&rsquo;s globally distributed Soldier Magazine. The website received the Award of Excellence from the International Communicator Awards.</p>
           </div>
         </article>
 
@@ -266,12 +293,12 @@
           <div class="case__media carousel" data-carousel data-label="RIBA">
             <div class="carousel__viewport">
               <div class="carousel__track">
-                <figure class="carousel__slide"><img src="/assets/images/work/riba/riba-01.webp" srcset="/assets/images/work/riba/riba-01-960.webp 960w, /assets/images/work/riba/riba-01.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="RIBA design system components, including buttons, icons and colour palettes" width="1600" height="900" loading="lazy" decoding="async"></figure>
+                <figure class="carousel__slide"><img src="/assets/images/work/riba/riba-01.webp" srcset="/assets/images/work/riba/riba-01-960.webp 960w, /assets/images/work/riba/riba-01.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="RIBA design system components, including buttons, icons and colour palettes" width="1600" height="900" loading="lazy" decoding="async"></figure>
                 <figure class="carousel__slide"><video data-src="/assets/images/work/riba/riba-02.mp4" data-poster="/assets/images/work/riba/riba-02-poster.webp" width="1600" height="900" muted loop playsinline preload="none" aria-label="Design workshop footage from the RIBA project"></video></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-03.webp" data-srcset="/assets/images/work/riba/riba-03-960.webp 960w, /assets/images/work/riba/riba-03.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="riba.org homepage with a lakeside house and the headline Make the future a better place" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-04.webp" data-srcset="/assets/images/work/riba/riba-04-960.webp 960w, /assets/images/work/riba/riba-04.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="RIBA Journal homepage featuring an Edwardian house extension" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-05.webp" data-srcset="/assets/images/work/riba/riba-05-960.webp 960w, /assets/images/work/riba/riba-05.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="The RIBA website on a laptop" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-06.webp" data-srcset="/assets/images/work/riba/riba-06-960.webp 960w, /assets/images/work/riba/riba-06.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="User journey maps and flow diagrams for the RIBA website" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-03.webp" data-srcset="/assets/images/work/riba/riba-03-960.webp 960w, /assets/images/work/riba/riba-03.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="riba.org homepage with a lakeside house and the headline Make the future a better place" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-04.webp" data-srcset="/assets/images/work/riba/riba-04-960.webp 960w, /assets/images/work/riba/riba-04.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="RIBA Journal homepage featuring an Edwardian house extension" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-05.webp" data-srcset="/assets/images/work/riba/riba-05-960.webp 960w, /assets/images/work/riba/riba-05.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="The RIBA website on a laptop" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/riba/riba-06.webp" data-srcset="/assets/images/work/riba/riba-06-960.webp 960w, /assets/images/work/riba/riba-06.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="User journey maps and flow diagrams for the RIBA website" width="1600" height="900" decoding="async"></figure>
               </div>
             </div>
             <div class="carousel__pips"></div>
@@ -279,8 +306,9 @@
 
           <div class="case__copy">
             <p class="case__title">Reduced development and design costs by 50%</p>
+            <p class="case__decision"><span class="case__decision-label">The decision</span>One design system for every RIBA product, built to outlast any agency.</p>
             <p>I led the translation of a new visual identity into a single design system for riba.org, the RIBA Journal and the brand&rsquo;s wider product portfolio. It was built to outlast any agency relationship, and the engagement grew into strategy, planning and scoping for their multi-year digital transformation.</p>
-            <p>The value compounded with each project, allowing us to first assess what problems can be solved with existing elements, and only investing in new functionality where essential.</p>
+            <p>The value compounded with each project, allowing us to first assess what problems can be solved with existing elements, and only invest in new functionality where essential.</p>
           </div>
         </article>
 
@@ -293,10 +321,10 @@
           <div class="case__media carousel" data-carousel data-label="Frasers Group">
             <div class="carousel__viewport">
               <div class="carousel__track">
-                <figure class="carousel__slide"><img src="/assets/images/work/frasers/frasers-01.webp" srcset="/assets/images/work/frasers/frasers-01-960.webp 960w, /assets/images/work/frasers/frasers-01.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Flannels app screens for onboarding and account registration" width="1600" height="900" loading="lazy" decoding="async"></figure>
+                <figure class="carousel__slide"><img src="/assets/images/work/frasers/frasers-01.webp" srcset="/assets/images/work/frasers/frasers-01-960.webp 960w, /assets/images/work/frasers/frasers-01.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Flannels app screens for onboarding and account registration" width="1600" height="900" loading="lazy" decoding="async"></figure>
                 <figure class="carousel__slide"><video data-src="/assets/images/work/frasers/frasers-02.mp4" data-poster="/assets/images/work/frasers/frasers-02-poster.webp" width="1600" height="900" muted loop playsinline preload="none" aria-label="The Flannels app in use on a phone"></video></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/frasers/frasers-03.webp" data-srcset="/assets/images/work/frasers/frasers-03-960.webp 960w, /assets/images/work/frasers/frasers-03.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="App screens across Frasers Group brands, including Sports Direct, House of Fraser and Flannels" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/frasers/frasers-04.webp" data-srcset="/assets/images/work/frasers/frasers-04-960.webp 960w, /assets/images/work/frasers/frasers-04.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Sports Direct product page for football boots on a tablet" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/frasers/frasers-03.webp" data-srcset="/assets/images/work/frasers/frasers-03-960.webp 960w, /assets/images/work/frasers/frasers-03.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="App screens across Frasers Group brands, including Sports Direct, House of Fraser and Flannels" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/frasers/frasers-04.webp" data-srcset="/assets/images/work/frasers/frasers-04-960.webp 960w, /assets/images/work/frasers/frasers-04.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Sports Direct product page for football boots on a tablet" width="1600" height="900" decoding="async"></figure>
               </div>
             </div>
             <div class="carousel__pips"></div>
@@ -304,8 +332,9 @@
 
           <div class="case__copy">
             <p class="case__title">A 400% increase in <span class="nowrap">sign-ups</span> in the first week of launch</p>
+            <p class="case__decision"><span class="case__decision-label">The decision</span>Move account registration into the app&rsquo;s onboarding flow.</p>
             <p>One app scaled across 15 brands, from Sports Direct to Flannels, each with its own audience and identity. I led the UX and brand decisions for a rebuilt m-commerce experience.</p>
-            <p>The key project decision was moving account registration into the app&rsquo;s onboarding flow, which delivered a huge uplift. Investing in one adaptable design system delivered huge time and resource savings for Frasers Group, with many of the brands rolled out without requiring agency assistance.</p>
+            <p>Moving registration into onboarding drove that uplift. Investing in one adaptable design system also saved Frasers Group significant time and resource, with many of the brands rolled out without requiring agency assistance.</p>
           </div>
         </article>
 
@@ -318,10 +347,10 @@
           <div class="case__media carousel" data-carousel data-label="Echodyne">
             <div class="carousel__viewport">
               <div class="carousel__track">
-                <figure class="carousel__slide"><img src="/assets/images/work/echodyne/echodyne-01.webp" srcset="/assets/images/work/echodyne/echodyne-01-960.webp 960w, /assets/images/work/echodyne/echodyne-01.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Echodyne news story on a phone held over a laptop" width="1600" height="900" loading="lazy" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-02.webp" data-srcset="/assets/images/work/echodyne/echodyne-02-960.webp 960w, /assets/images/work/echodyne/echodyne-02.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Echodyne website pages arranged around the project brief" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-03.webp" data-srcset="/assets/images/work/echodyne/echodyne-03-960.webp 960w, /assets/images/work/echodyne/echodyne-03.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Webflow localisation settings beside the French version of the Echodyne website" width="1600" height="900" decoding="async"></figure>
-                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-04.webp" data-srcset="/assets/images/work/echodyne/echodyne-04-960.webp 960w, /assets/images/work/echodyne/echodyne-04.webp 1600w" sizes="(min-width: 64em) 640px, (min-width: 48em) 72vw, 100vw" alt="Echodyne radar product pages and imagery" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img src="/assets/images/work/echodyne/echodyne-01.webp" srcset="/assets/images/work/echodyne/echodyne-01-960.webp 960w, /assets/images/work/echodyne/echodyne-01.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Echodyne news story on a phone held over a laptop" width="1600" height="900" loading="lazy" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-02.webp" data-srcset="/assets/images/work/echodyne/echodyne-02-960.webp 960w, /assets/images/work/echodyne/echodyne-02.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Echodyne website pages arranged around the project brief" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-03.webp" data-srcset="/assets/images/work/echodyne/echodyne-03-960.webp 960w, /assets/images/work/echodyne/echodyne-03.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Webflow localisation settings beside the French version of the Echodyne website" width="1600" height="900" decoding="async"></figure>
+                <figure class="carousel__slide"><img data-src="/assets/images/work/echodyne/echodyne-04.webp" data-srcset="/assets/images/work/echodyne/echodyne-04-960.webp 960w, /assets/images/work/echodyne/echodyne-04.webp 1600w" sizes="(min-width: 64em) 848px, 100vw" alt="Echodyne radar product pages and imagery" width="1600" height="900" decoding="async"></figure>
               </div>
             </div>
             <div class="carousel__pips"></div>
@@ -329,6 +358,7 @@
 
           <div class="case__copy">
             <p class="case__title">A site that scaled with the team, with 13 locales launched in year 1 to support expansion into new markets</p>
+            <p class="case__decision"><span class="case__decision-label">The decision</span>Move to Webflow instead of rebranding.</p>
             <p>A defence-tech market leader that still looked like a startup. A rebrand was logical, but not the answer. After learning how the content team couldn&rsquo;t move at the speed the business needed on their CMS, I made the case for moving to Webflow. This was a much lighter and more adaptable platform than Umbraco, enabling a rapid 3-month delivery so the team could attack the market during a key sales period.</p>
           </div>
         </article>
@@ -525,6 +555,7 @@
           <svg class="contact__call-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="11.5" rx="1.5"/><path d="M1.75 6.5h12.5M5 1.25v3M11 1.25v3"/></svg>
           <span class="contact__call-label">Or book a 30-minute call</span>
         </a>
+        <p class="contact__where">Based in Greater Manchester, UK, and working with teams worldwide.</p>
       </div>
     </section>
 
