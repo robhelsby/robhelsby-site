@@ -1,0 +1,8 @@
+name = "alright-chief-proxy"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# Optional hardening once you know where the app is hosted:
+# [vars]
+# ALLOWED_ORIGIN = "https://rawcdn.githack.com,https://your-domain.com"
+# MODEL = "claude-opus-4-8"

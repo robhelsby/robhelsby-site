@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Alright Chief — a transition app for new dads who want to feel like themselves while becoming the father their family needs. Prototype v0.1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#a8bf96" />
+  <title>Alright Chief — Prototype</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="stage">
+    <div class="phone" id="phone">
+      <div class="phone__screen">
+        <div id="app" class="app" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <aside class="stage-note" aria-hidden="true">
+      <p class="stage-note__brand">Alright Chief</p>
+      <p>First-pass prototype · v0.1</p>
+      <p>A transition app for new dads who want to feel like themselves while becoming the father their family needs.</p>
+      <p class="stage-note__hint">Everything is clickable. Data lives in your browser only.</p>
+      <div class="stage-note__actions">
+        <button type="button" id="seed-demo">Load demo data (month three)</button>
+        <button type="button" id="reset-proto">Reset prototype</button>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Language interface</p>
+        <p>Conversational copy is generated live by Claude when connected; otherwise the scripted fallback voice is used. Status: <strong id="llm-status">scripted fallback</strong></p>
+        <input id="proxy-url-input" type="url" placeholder="Proxy URL (production path — see proxy/README.md)" autocomplete="off" />
+        <input id="api-key-input" type="password" placeholder="Anthropic API key (dev fallback)" autocomplete="off" />
+        <div class="stage-note__row">
+          <button type="button" id="save-key">Connect Claude</button>
+          <button type="button" id="clear-key">Disconnect</button>
+        </div>
+        <p class="stage-note__hint">The proxy holds the key server-side so nothing secret ever ships to a client — deploy it from <code>proxy/</code> in ~5 minutes. A pasted key stays in this browser only and is used when no proxy is set.</p>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Progress &amp; notifications</p>
+        <p>Welcome messages and push notifications reflect the dad's transition back to balance, drawn from how his ledger changes over time. Status: <strong id="notify-status">off</strong></p>
+        <div class="stage-note__row">
+          <button type="button" id="enable-notify">Enable notifications</button>
+          <button type="button" id="send-nudge">Send a progress nudge</button>
+        </div>
+        <p class="stage-note__hint">Real builds schedule these server-side (Push API + service worker); here they fire on demand, plus a demo nudge ~6s after enabling.</p>
+      </div>
+
+      <div class="stage-note__section">
+        <p class="stage-note__label">Character render</p>
+        <p>The chief is a drawn, fully interactive vector character — he breathes, blinks, and you can poke, spin and pick him up by the scruff. You can switch to the static reference photo art to compare.</p>
+        <div class="stage-note__row">
+          <button type="button" id="toggle-render">Use reference photo art</button>
+        </div>
+        <p class="stage-note__label" style="margin-top:14px">Avatar pipeline (Midjourney)</p>
+        <p>A bespoke prompt in the house style, built from the dad's answers. Or plug a render straight in. See <code>RENDER_PIPELINE.md</code> for the production path (Rive).</p>
+        <button type="button" id="copy-mj">Copy Midjourney prompt</button>
+        <input id="mj-url" type="text" placeholder="Paste a rendered image URL" autocomplete="off" />
+        <div class="stage-note__row">
+          <button type="button" id="apply-mj">Use as chief</button>
+          <button type="button" id="clear-mj">Clear</button>
+        </div>
+        <p class="stage-note__hint" id="mj-feedback"></p>
+      </div>
+    </aside>
+  </div>
+
+  <script src="chief.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

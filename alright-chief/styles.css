@@ -1,0 +1,982 @@
+/* ============================================================
+   Alright Chief — first-pass prototype
+   Sage green + putty grey, after the reference — the dark character
+   carries the contrast. Typographic, no app-store cyan.
+   ============================================================ */
+
+:root {
+  --bg: #a8bf96;            /* sage green — the wall */
+  --bg-raise: #e6e4d9;      /* putty grey — the sweatshirt */
+  --bg-raise-2: #dbd9cc;
+  --line: #c4c6b2;
+  --ink: #23231c;
+  --ink-dim: #4f4f43;
+  --ink-faint: #737464;
+  --accent: #2f5b2a;        /* deep green */
+  --accent-ink: #f0eee0;    /* cream */
+  --lost: #918d7d;
+  --gained: #4b7f3f;
+  --radius: 18px;
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #cdccc0;
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Stage: phone frame on desktop ---------- */
+
+.stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 56px;
+  padding: 32px 20px;
+}
+
+.phone {
+  width: 396px;
+  height: 844px;
+  max-height: calc(100vh - 48px);
+  border-radius: 48px;
+  padding: 12px;
+  background: #23231c;
+  box-shadow:
+    0 0 0 1px #35352b,
+    0 30px 80px rgba(55, 60, 45, 0.35);
+  flex-shrink: 0;
+}
+
+.phone__screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 38px;
+  overflow: hidden;
+  background: var(--bg);
+  position: relative;
+}
+
+.stage-note {
+  max-width: 300px;
+  color: var(--ink-faint);
+  font-size: 14px;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stage-note__brand {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.stage-note__hint { color: var(--ink-faint); }
+
+.stage-note__actions {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.stage-note__actions button {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font: 500 12px var(--font-body);
+  padding: 7px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+}
+
+.stage-note__actions button:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+.stage-note__section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #b5b4a6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-note__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+}
+
+.stage-note__section input {
+  background: #f2f0e6;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font: 400 12px var(--font-body);
+  padding: 8px 10px;
+  outline: none;
+}
+.stage-note__section input:focus { border-color: var(--ink-faint); }
+
+.stage-note__row { display: flex; gap: 8px; }
+
+.stage-note__section button {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font: 500 12px var(--font-body);
+  padding: 7px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.stage-note__section button:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+@media (max-width: 860px) {
+  .stage { padding: 0; }
+  .stage-note { display: none; }
+  .phone {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .phone__screen { border-radius: 0; }
+}
+
+/* ---------- App shell ---------- */
+
+.app { height: 100%; display: flex; flex-direction: column; }
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px 24px;
+  overflow-y: auto;
+  animation: screen-in 0.45s ease both;
+}
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Type ---------- */
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 42px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.micro {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font: 600 16px var(--font-body);
+  border-radius: 99px;
+  padding: 16px 24px;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn--primary { background: var(--accent); color: var(--accent-ink); }
+.btn--primary:hover { background: #3a6f34; }
+
+.btn--ghost {
+  background: none;
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+}
+.btn--ghost:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+.btn--compact {
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.btn--quiet {
+  background: none;
+  color: var(--ink-faint);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 10px;
+}
+.btn--quiet:hover { color: var(--ink-dim); }
+
+.btn[disabled] { opacity: 0.35; pointer-events: none; }
+
+/* ---------- Welcome ---------- */
+
+.welcome { justify-content: space-between; padding-top: 80px; }
+
+.welcome__top { display: flex; flex-direction: column; gap: 18px; }
+
+.welcome__mark {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin-bottom: 26px;
+}
+
+.welcome__bottom { display: flex; flex-direction: column; gap: 12px; }
+
+/* ---------- Onboarding conversation ---------- */
+
+.convo { flex: 1; display: flex; flex-direction: column; }
+
+.convo__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.convo__steps { display: flex; gap: 5px; }
+
+.convo__step {
+  width: 22px; height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.convo__step.is-done { background: var(--accent); }
+
+.convo__body { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+.q-kicker {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+}
+
+.q-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  animation: screen-in 0.4s ease both;
+}
+
+.q-sub { color: var(--ink-dim); font-size: 15px; line-height: 1.5; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+.chip {
+  appearance: none;
+  cursor: pointer;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: 500 15px var(--font-body);
+  padding: 13px 18px;
+  border-radius: 99px;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.chip:hover { border-color: var(--ink-faint); }
+.chip:active { transform: scale(0.96); }
+
+.answer-box {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.answer-box textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: none;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--font-body);
+  padding: 16px;
+  outline: none;
+}
+
+.answer-box textarea:focus { border-color: var(--ink-faint); }
+.answer-box textarea::placeholder { color: var(--ink-faint); }
+
+.answer-box input[type="text"] {
+  width: 100%;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--ink);
+  font: 500 17px var(--font-body);
+  padding: 15px 20px;
+  outline: none;
+}
+.answer-box input[type="text"]:focus { border-color: var(--ink-faint); }
+.answer-box input[type="text"]::placeholder { color: var(--ink-faint); }
+
+/* ---------- Voice-first input ---------- */
+
+.voice-box {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.mic-btn {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-raise);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mic-btn:hover { border-color: var(--accent); }
+.mic-btn:active { transform: scale(0.95); }
+
+.mic-btn.is-listening {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  animation: mic-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47, 91, 42, 0.30); }
+  50% { box-shadow: 0 0 0 18px rgba(47, 91, 42, 0); }
+}
+
+.voice-status {
+  font-size: 13px;
+  color: var(--ink-faint);
+  min-height: 18px;
+}
+
+.transcript-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.transcript-wrap .transcript,
+.transcript-wrap textarea { padding-right: 46px; }
+
+.input-clear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-raise-2);
+  color: var(--ink-dim);
+  font: 500 16px/1 var(--font-body);
+  padding: 0;
+  cursor: pointer;
+  display: none;
+  place-items: center;
+}
+
+.input-clear:hover { color: var(--ink); border-color: var(--ink-faint); }
+.transcript-wrap.has-content .input-clear { display: grid; }
+
+.voice-hint { text-align: center; }
+
+.transcript {
+  width: 100%;
+  min-height: 56px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 15px 16px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.transcript.is-empty::before {
+  content: "Your words land here.";
+  color: var(--ink-faint);
+}
+
+.voice-box__alts {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.voice-box .btn--primary,
+.answer-box .btn--primary { width: 100%; }
+
+.voice-notice { color: var(--accent); }
+
+.answer-box .voice-box__alts { align-self: center; }
+
+/* ---------- Buddy generation / reveal ---------- */
+
+.genscreen { align-items: center; justify-content: center; text-align: center; gap: 22px; }
+
+.gen-orb {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f2f0e6, #d8d6c9 70%);
+  position: relative;
+  animation: orb-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.buddy-stage {
+  display: grid;
+  place-items: center;
+  padding: 8px 0;
+}
+
+.buddy-svg {
+  width: 230px;
+  height: 230px;
+  animation: buddy-float 4.5s ease-in-out infinite;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.buddy-svg--small { width: 130px; height: 130px; }
+.buddy-svg--reveal { animation: buddy-reveal 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both, buddy-float 4.5s ease-in-out 0.9s infinite; }
+
+@keyframes buddy-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+@keyframes buddy-reveal {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.buddy-svg.is-poked { animation: buddy-squish 0.45s ease both; }
+
+/* Midjourney-rendered buddy (image pipeline) */
+img.buddy-svg {
+  border-radius: 42%;
+  object-fit: cover;
+  background: var(--bg-raise);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Reference-art sprite: crisp, sized like the SVG chief, and gently alive on idle */
+img.chief-sprite {
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 12px rgba(30, 40, 25, 0.35));
+  transform-origin: 50% 100%;
+  animation: chief-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes chief-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-4px) scale(1.015); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img.chief-sprite { animation: none; }
+}
+
+/* ---------- The Balance: honest two-sided weigh ---------- */
+.weigh {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 18px;
+  height: 132px;
+  margin: 20px 0 6px;
+}
+.weigh__col { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 64px; }
+.weigh__track {
+  width: 100%;
+  height: 110px;
+  border-radius: 12px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.weigh__fill {
+  width: 100%;
+  border-radius: 0 0 11px 11px;
+  transition: height 0.85s cubic-bezier(0.3, 1, 0.4, 1);
+}
+.weigh__fill--lost   { background: var(--lost); }
+.weigh__fill--gained { background: var(--gained); }
+.weigh__tag {
+  font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.13em;
+}
+.weigh__fulcrum {
+  width: 0; height: 0; align-self: flex-end; margin-bottom: 26px;
+  border-left: 9px solid transparent; border-right: 9px solid transparent;
+  border-bottom: 13px solid var(--ink-faint);
+}
+.balance-read {
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin: 2px 8px 0;
+}
+
+/* ---------- Buddy handling: grab, dangle, drop, spin ---------- */
+
+.buddy-holder {
+  display: inline-block;
+  touch-action: none;
+  cursor: grab;
+}
+
+.buddy-holder.is-held { cursor: grabbing; }
+
+.buddy-holder.is-dropping {
+  transition: transform 0.55s cubic-bezier(0.3, 1.8, 0.4, 1);
+}
+
+/* held by the scruff: float pauses, body stretches from the top */
+.buddy-svg.is-grabbed {
+  animation: none;
+  transform: scale(0.9, 1.12);
+  transform-origin: 50% 18%;
+  transition: transform 0.18s ease;
+}
+
+.buddy-svg.is-spinning {
+  animation: buddy-spin 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+@keyframes buddy-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ---------- Chief details ----------
+   NB: never use CSS `transform` + `transform-box: fill-box` on SVG sub-elements
+   (eyes/accents). iOS Safari mishandles it and flings the element off the body.
+   These animations are opacity-only, which is reliable everywhere; the eyes are
+   positioned purely by their SVG coordinates. ---------- */
+
+/* twinkle for floating accents (z's, notes, hearts, sparkles) — in place, no transform */
+.chief-float { opacity: 0.9; animation: chief-twinkle 2.6s ease-in-out infinite; }
+.chief-float.f2 { animation-delay: 0.85s; }
+.chief-float.f3 { animation-delay: 1.7s; }
+
+@keyframes chief-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+.chief-snap { animation: chief-snap-fade 0.4s ease both; }
+@keyframes chief-snap-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Connect Claude: appbar button, inline link, and sheet ---------- */
+.appbar__connect {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  font: 600 11.5px var(--font-body);
+  letter-spacing: 0.04em;
+  padding: 6px 11px;
+  border-radius: 99px;
+  cursor: pointer;
+}
+.appbar__connect:hover { color: var(--ink); border-color: var(--ink-faint); }
+.appbar__connect.is-on { color: var(--accent); border-color: #9db38a; }
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.connect-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(38, 44, 32, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  animation: screen-in 0.25s ease both;
+}
+@media (min-width: 560px) { .connect-sheet { align-items: center; } }
+
+.connect-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.connect-card h3 { font-family: var(--font-display); font-weight: 500; font-size: 22px; }
+.connect-card p { font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); }
+.connect-card input {
+  width: 100%;
+  background: #f2f0e6;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font: 400 15px var(--font-body);
+  padding: 13px 14px;
+  outline: none;
+}
+.connect-card input:focus { border-color: var(--ink-faint); }
+.connect-card .btn { width: 100%; }
+
+/* Line swapped in live by the LLM voice */
+.llm-swap { animation: screen-in 0.4s ease both; }
+
+.ack-line {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent);
+  min-height: 0;
+  margin-bottom: 4px;
+}
+
+@keyframes buddy-squish {
+  0%   { transform: scale(1, 1); }
+  30%  { transform: scale(1.12, 0.85); }
+  60%  { transform: scale(0.92, 1.08); }
+  100% { transform: scale(1, 1); }
+}
+
+.buddy-line {
+  min-height: 44px;
+  color: var(--ink-dim);
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* ---------- App home / tabs ---------- */
+
+.appbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px 24px 0;
+}
+
+.appbar .wordmark { font-size: 16px; color: var(--accent); }
+.appbar .date { font-size: 12.5px; color: var(--ink-faint); }
+
+.tabbar {
+  display: flex;
+  border-top: 1px solid var(--line);
+  background: var(--bg-raise);
+  padding: 6px 10px calc(14px + env(safe-area-inset-bottom));
+}
+
+.tab {
+  flex: 1;
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-faint);
+  font: 500 12px var(--font-body);
+  padding: 10px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.tab svg { width: 22px; height: 22px; }
+.tab.is-active { color: var(--ink); }
+.tab.is-active svg { color: var(--accent); }
+
+/* ---------- Cards ---------- */
+
+.card {
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 10px rgba(55, 60, 45, 0.10);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card--accent { border-color: #b9c6a6; background: linear-gradient(160deg, #eef0dd, var(--bg-raise) 70%); }
+
+.card__kicker {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--ink-faint);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.card__body { font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); }
+
+.home-greeting {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 34px;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 10px 0 6px;
+}
+
+.home-stack { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+
+/* ---------- Check-in flow ---------- */
+
+.checkin-side {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+.checkin-side--lost { color: var(--lost); }
+.checkin-side--gained { color: var(--gained); }
+
+/* ---------- The Balance ledger ---------- */
+
+.ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+.ledger__col { display: flex; flex-direction: column; gap: 10px; }
+
+.ledger__head {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ledger__count { color: var(--ink-faint); font-weight: 500; letter-spacing: 0; }
+
+.entry {
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.entry time {
+  display: block;
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.entry--lost { border-left: 2px solid var(--lost); }
+.entry--gained { border-left: 2px solid var(--gained); }
+
+.ledger-empty {
+  margin-top: 40px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 14.5px;
+  line-height: 1.6;
+  padding: 0 16px;
+}
+
+/* ---------- Done / interstitials ---------- */
+
+.donescreen { align-items: center; justify-content: center; text-align: center; gap: 18px; }
+
+.done-tick {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  animation: buddy-reveal 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* ---------- Footer flourishes ---------- */
+
+.screen-footer {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fade-line { animation: screen-in 0.5s ease both; }
+.fade-line:nth-child(2) { animation-delay: 0.12s; }
+.fade-line:nth-child(3) { animation-delay: 0.24s; }
+
+
+/* ---------- The chief's room: full-screen playspace ---------- */
+.buddy-room {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  animation: screen-in 0.45s ease both;
+}
+
+.buddy-holder--room {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buddy-room svg.buddy-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.buddy-line--float {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 18px;
+  pointer-events: none;
+  max-width: none;
+}
+
+/* The room keeps your hours — the light shifts with the time of day.
+   Tints stay light enough that the dark chief always reads clearly. */
+.buddy-room--dawn  { background: linear-gradient(180deg, #ece5cd 0%, #b8c8a0 78%); }
+.buddy-room--day   { background: transparent; }
+.buddy-room--dusk  { background: linear-gradient(180deg, #e3d2ae 0%, #a3b58c 80%); }
+.buddy-room--night { background: linear-gradient(180deg, #7e916f 0%, #93a681 80%); }
+.buddy-room--night .buddy-line--float { color: #2a2e24; }
+
+/* ---------- The chief attends the check-in ---------- */
+.checkin-chief {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 2px;
+}
+
+.checkin-chief .buddy-svg,
+.checkin-chief .buddy-svg--small {
+  width: 96px;
+  height: 96px;
+}
+
+/* Leaning in while the mic is live. Wrapper div only — never animate
+   transforms on SVG children (broken on iOS Safari). */
+.checkin-chief.is-listening {
+  animation: chief-listen 1.5s ease-in-out infinite;
+}
+
+@keyframes chief-listen {
+  0%, 100% { transform: translateY(0) rotate(-1.4deg); }
+  50%      { transform: translateY(-3px) rotate(1.4deg); }
+}
+
+/* ---------- Crisis signposting on the done screen ---------- */
+.signpost {
+  border: 1px solid #c7c3ae;
+  background: var(--bg-raise);
+  border-radius: 16px;
+  padding: 14px 16px;
+  max-width: 300px;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.signpost strong { color: var(--ink); }
