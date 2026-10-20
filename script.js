@@ -1062,3 +1062,110 @@
   // Positions shift slightly once fonts and images arrive, so measure again
   window.addEventListener("load", updateNav, { once: true });
 })();
+
+
+/* ---------- Dithered photos ----------
+   Redraws each <span class="dither"> image as a two-colour Floyd-Steinberg
+   dither at one dot per CSS pixel, matching the image's object-fit crop.
+   Colours and brightness come from the CSS custom properties on .dither. */
+(() => {
+  const frames = document.querySelectorAll(".dither");
+  if (!frames.length) return;
+
+  const hex = (value) => {
+    const probe = document.createElement("span");
+    probe.style.color = value;
+    document.body.appendChild(probe);
+    const rgb = getComputedStyle(probe).color.match(/\d+/g).map(Number);
+    probe.remove();
+    return rgb;
+  };
+
+  function draw(frame) {
+    const img = frame.querySelector("img");
+    const w = Math.round(img.clientWidth);
+    const h = Math.round(img.clientHeight);
+    if (!w || !h || !img.naturalWidth) return;
+
+    const css = getComputedStyle(frame);
+    const ink = hex(css.getPropertyValue("--dither-ink").trim());
+    const paper = hex(css.getPropertyValue("--dither-paper").trim());
+    const gamma = parseFloat(css.getPropertyValue("--dither-gamma")) || 1;
+
+    let canvas = frame.querySelector("canvas");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.setAttribute("aria-hidden", "true");
+      frame.appendChild(canvas);
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    // Reproduce object-fit: cover with the image's object-position
+    const pos = getComputedStyle(img).objectPosition.split(" ").map((v) => parseFloat(v) / 100);
+    const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+    const sw = w / scale, sh = h / scale;
+    const sx = (img.naturalWidth - sw) * (isNaN(pos[0]) ? 0.5 : pos[0]);
+    const sy = (img.naturalHeight - sh) * (isNaN(pos[1]) ? 0.5 : pos[1]);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+
+    const data = ctx.getImageData(0, 0, w, h);
+    const px = data.data;
+    const lum = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      const l = (0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2]) / 255;
+      lum[i] = l;
+    }
+
+    // Stretch the tones to fill the range (ignoring the extreme 1%), then apply gamma
+    const sorted = Float32Array.from(lum).sort();
+    const lo = sorted[Math.floor(sorted.length * 0.01)];
+    const hi = sorted[Math.floor(sorted.length * 0.99)];
+    const range = Math.max(hi - lo, 0.01);
+    for (let i = 0; i < w * h; i++) {
+      lum[i] = Math.pow(Math.min(Math.max((lum[i] - lo) / range, 0), 1), gamma);
+    }
+
+    // Serpentine Floyd-Steinberg
+    for (let y = 0; y < h; y++) {
+      const ltr = y % 2 === 0;
+      for (let n = 0; n < w; n++) {
+        const x = ltr ? n : w - 1 - n;
+        const i = y * w + x;
+        const old = lum[i];
+        const val = old < 0.5 ? 0 : 1;
+        const err = old - val;
+        lum[i] = val;
+        const d = ltr ? 1 : -1;
+        if (x + d >= 0 && x + d < w) lum[i + d] += err * 7 / 16;
+        if (y + 1 < h) {
+          if (x - d >= 0 && x - d < w) lum[i + w - d] += err * 3 / 16;
+          lum[i + w] += err * 5 / 16;
+          if (x + d >= 0 && x + d < w) lum[i + w + d] += err * 1 / 16;
+        }
+      }
+    }
+
+    for (let i = 0; i < w * h; i++) {
+      const c = lum[i] ? paper : ink;
+      px[i * 4] = c[0]; px[i * 4 + 1] = c[1]; px[i * 4 + 2] = c[2]; px[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(data, 0, 0);
+    frame.classList.add("is-dithered");
+  }
+
+  frames.forEach((frame) => {
+    const img = frame.querySelector("img");
+    if (!img) return;
+    const run = () => draw(frame);
+    if (img.complete && img.naturalWidth) run();
+    else img.addEventListener("load", run, { once: true });
+    // Redraw when the displayed size changes, so dots stay one pixel each
+    let last = 0;
+    new ResizeObserver(() => {
+      const w = Math.round(img.clientWidth);
+      if (w && w !== last) { last = w; if (img.complete && img.naturalWidth) run(); }
+    }).observe(img);
+  });
+})();

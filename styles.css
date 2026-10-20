@@ -935,44 +935,29 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   line-height: 1.65;
 }
 
-/* ---------- Film grain on headshots ----------
-   Fine monochrome noise over the photo, jumping position about ten times a
-   second like TV static. Wrap any image in <span class="grainy"> to use it.
-   --grain sets the strength. */
-.grainy {
-  --grain: 0.35;
+/* ---------- Dithered photos ----------
+   Wrap an image in <span class="dither"> and script.js redraws it as a
+   two-colour dither: --dither-ink dots on --dither-paper. Each dot is one
+   CSS pixel. --dither-gamma brightens (below 1) or darkens (above 1) the
+   photo before it's dithered. Without JavaScript the plain image shows. */
+.dither {
+  --dither-ink: var(--forest);
+  --dither-paper: var(--paper);
+  --dither-gamma: 0.75;
   position: relative;
   display: block;
   overflow: hidden;
-  isolation: isolate;
 }
-.grainy > img { display: block; }
-
-.grainy::after {
-  content: "";
+.dither > img { display: block; }
+.dither > canvas {
   position: absolute;
-  inset: -100%;                  /* oversized, so it can jump around without showing edges */
-  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
   pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncG type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncB type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncA type='table' tableValues='1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 200px;
-  opacity: var(--grain);
-  mix-blend-mode: overlay;
-  animation: grain-static 1s steps(1) infinite;
 }
-
-/* Each step is a hard cut to a new position with a slight flicker in strength */
-@keyframes grain-static {
-  0%   { transform: translate(0, 0);       opacity: var(--grain); }
-  10%  { transform: translate(-6%, -9%);   opacity: calc(var(--grain) * 0.85); }
-  20%  { transform: translate(-14%, 6%);   opacity: var(--grain); }
-  30%  { transform: translate(8%, -22%);   opacity: calc(var(--grain) * 1.1); }
-  40%  { transform: translate(-4%, 24%);   opacity: calc(var(--grain) * 0.9); }
-  50%  { transform: translate(-16%, 11%);  opacity: var(--grain); }
-  60%  { transform: translate(15%, 1%);    opacity: calc(var(--grain) * 0.85); }
-  70%  { transform: translate(1%, 16%);    opacity: calc(var(--grain) * 1.1); }
-  80%  { transform: translate(4%, 33%);    opacity: var(--grain); }
-  90%  { transform: translate(-11%, 9%);   opacity: calc(var(--grain) * 0.9); }
-}
+.dither.is-dithered > img { opacity: 0; }   /* kept for its alt text and size */
 
 /* Portrait + hidden headshot reveal */
 .portrait {
@@ -1653,5 +1638,4 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   .gallery[open], .gallery__media { animation: none; }
   .faq__item::details-content { transition: none !important; }
   .hero__pause { display: none; }   /* slideshow doesn't auto-play here */
-  .grainy::after { animation: none; }   /* grain stays, but holds still */
 }
