@@ -989,6 +989,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   height: auto;
   aspect-ratio: 1;
   object-fit: cover;
+  object-position: 50% 15%;   /* portrait is 3:4; keep the head in the square crop */
   filter: grayscale(1) contrast(1.05);
   -webkit-user-drag: none;
 }
