@@ -946,7 +946,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
 .dither {
   --dither-ink: #161817;
   --dither-paper: #d6d6d4;
-  --dither-mix: 0.3;
+  --dither-mix: 0.2;
   --dither-gamma: 1;
   --dither-static: 1;
   position: relative;

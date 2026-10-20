@@ -1077,7 +1077,7 @@
   if (!frames.length) return;
 
   const FRAME_COUNT = 8;   // distinct static frames to cycle between
-  const TICK_MS = 100;     // how often the static jumps
+  const TICK_MS = 150;     // how often the static jumps
   const still = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const rgb = (value) => {
