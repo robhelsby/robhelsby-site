@@ -974,7 +974,6 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   -webkit-tap-highlight-color: transparent;
 }
 
-.portrait .dither { border-radius: 0.5rem; }
 .portrait__photo {
   width: 100%;
   height: auto;
