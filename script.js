@@ -1067,41 +1067,32 @@
 /* ---------- Dithered photos ----------
    Redraws each <span class="dither"> image as a two-colour Floyd-Steinberg
    dither at one dot per CSS pixel, matching the image's object-fit crop.
-   Colours and brightness come from the CSS custom properties on .dither. */
+   It "lives" like TV static: a handful of dither frames, each with a little
+   random noise, are cut between about ten times a second while the photo is
+   on screen. Reduced motion shows a single still frame.
+   Colours, brightness and static strength come from CSS custom properties. */
 (() => {
   const frames = document.querySelectorAll(".dither");
   if (!frames.length) return;
 
-  const hex = (value) => {
+  const FRAME_COUNT = 8;   // distinct static frames to cycle between
+  const TICK_MS = 100;     // how often the static jumps
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const rgb = (value) => {
     const probe = document.createElement("span");
     probe.style.color = value;
     document.body.appendChild(probe);
-    const rgb = getComputedStyle(probe).color.match(/\d+/g).map(Number);
+    const out = getComputedStyle(probe).color.match(/\d+/g).map(Number);
     probe.remove();
-    return rgb;
+    return out;
   };
 
-  function draw(frame) {
-    const img = frame.querySelector("img");
-    const w = Math.round(img.clientWidth);
-    const h = Math.round(img.clientHeight);
-    if (!w || !h || !img.naturalWidth) return;
-
-    const css = getComputedStyle(frame);
-    const ink = hex(css.getPropertyValue("--dither-ink").trim());
-    const paper = hex(css.getPropertyValue("--dither-paper").trim());
-    const gamma = parseFloat(css.getPropertyValue("--dither-gamma")) || 1;
-
-    let canvas = frame.querySelector("canvas");
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      canvas.setAttribute("aria-hidden", "true");
-      frame.appendChild(canvas);
-    }
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
+  // Greyscale, tone-stretched copy of the photo at display size
+  function tones(img, w, h, gamma) {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
     // Reproduce object-fit: cover with the image's object-position
     const pos = getComputedStyle(img).objectPosition.split(" ").map((v) => parseFloat(v) / 100);
     const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
@@ -1109,35 +1100,35 @@
     const sx = (img.naturalWidth - sw) * (isNaN(pos[0]) ? 0.5 : pos[0]);
     const sy = (img.naturalHeight - sh) * (isNaN(pos[1]) ? 0.5 : pos[1]);
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
-
-    const data = ctx.getImageData(0, 0, w, h);
-    const px = data.data;
+    const px = ctx.getImageData(0, 0, w, h).data;
     const lum = new Float32Array(w * h);
-    for (let i = 0; i < w * h; i++) {
-      const l = (0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2]) / 255;
-      lum[i] = l;
+    for (let i = 0; i < lum.length; i++) {
+      lum[i] = (0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2]) / 255;
     }
-
     // Stretch the tones to fill the range (ignoring the extreme 1%), then apply gamma
     const sorted = Float32Array.from(lum).sort();
     const lo = sorted[Math.floor(sorted.length * 0.01)];
     const hi = sorted[Math.floor(sorted.length * 0.99)];
     const range = Math.max(hi - lo, 0.01);
-    for (let i = 0; i < w * h; i++) {
+    for (let i = 0; i < lum.length; i++) {
       lum[i] = Math.pow(Math.min(Math.max((lum[i] - lo) / range, 0), 1), gamma);
     }
+    return lum;
+  }
 
-    // Serpentine Floyd-Steinberg
+  // One serpentine Floyd-Steinberg frame, with random noise added for static
+  function dither(base, w, h, noise, ink, paper, out) {
+    const lum = new Float32Array(base.length);
+    for (let i = 0; i < lum.length; i++) lum[i] = base[i] + (Math.random() - 0.5) * noise;
     for (let y = 0; y < h; y++) {
       const ltr = y % 2 === 0;
+      const d = ltr ? 1 : -1;
       for (let n = 0; n < w; n++) {
         const x = ltr ? n : w - 1 - n;
         const i = y * w + x;
-        const old = lum[i];
-        const val = old < 0.5 ? 0 : 1;
-        const err = old - val;
+        const val = lum[i] < 0.5 ? 0 : 1;
+        const err = lum[i] - val;
         lum[i] = val;
-        const d = ltr ? 1 : -1;
         if (x + d >= 0 && x + d < w) lum[i + d] += err * 7 / 16;
         if (y + 1 < h) {
           if (x - d >= 0 && x - d < w) lum[i + w - d] += err * 3 / 16;
@@ -1146,26 +1137,75 @@
         }
       }
     }
-
-    for (let i = 0; i < w * h; i++) {
+    const px = out.data;
+    for (let i = 0; i < lum.length; i++) {
       const c = lum[i] ? paper : ink;
       px[i * 4] = c[0]; px[i * 4 + 1] = c[1]; px[i * 4 + 2] = c[2]; px[i * 4 + 3] = 255;
     }
-    ctx.putImageData(data, 0, 0);
-    frame.classList.add("is-dithered");
+    return out;
   }
 
   frames.forEach((frame) => {
     const img = frame.querySelector("img");
     if (!img) return;
-    const run = () => draw(frame);
-    if (img.complete && img.naturalWidth) run();
-    else img.addEventListener("load", run, { once: true });
-    // Redraw when the displayed size changes, so dots stay one pixel each
-    let last = 0;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    frame.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+
+    let stack = [];       // prepared ImageData frames
+    let shown = -1;
+    let timer = null;
+    let onScreen = false;
+    let lastWidth = 0;
+
+    function build() {
+      const w = Math.round(img.clientWidth);
+      const h = Math.round(img.clientHeight);
+      if (!w || !h || !img.naturalWidth) return;
+      lastWidth = w;
+      const css = getComputedStyle(frame);
+      const ink = rgb(css.getPropertyValue("--dither-ink").trim());
+      const paper = rgb(css.getPropertyValue("--dither-paper").trim());
+      const gamma = parseFloat(css.getPropertyValue("--dither-gamma")) || 1;
+      const noise = parseFloat(css.getPropertyValue("--dither-static")) || 0;
+      const base = tones(img, w, h, gamma);
+      canvas.width = w; canvas.height = h;
+      const count = still.matches || !noise ? 1 : FRAME_COUNT;
+      stack = [];
+      for (let k = 0; k < count; k++) {
+        stack.push(dither(base, w, h, count > 1 ? noise : 0, ink, paper, ctx.createImageData(w, h)));
+      }
+      shown = 0;
+      ctx.putImageData(stack[0], 0, 0);
+      frame.classList.add("is-dithered");
+      sync();
+    }
+
+    function tick() {
+      // Hard cut to a different frame each time, like static
+      let next = Math.floor(Math.random() * (stack.length - 1));
+      if (next >= shown) next++;
+      shown = next;
+      ctx.putImageData(stack[shown], 0, 0);
+    }
+
+    function sync() {
+      const run = onScreen && stack.length > 1 && !document.hidden;
+      if (run && !timer) timer = window.setInterval(tick, TICK_MS);
+      if (!run && timer) { window.clearInterval(timer); timer = null; }
+    }
+
+    if (img.complete && img.naturalWidth) build();
+    else img.addEventListener("load", build, { once: true });
+
+    new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; sync(); }).observe(frame);
+    document.addEventListener("visibilitychange", sync);
+    still.addEventListener("change", build);
+    // Rebuild when the displayed size changes, so dots stay one pixel each
     new ResizeObserver(() => {
       const w = Math.round(img.clientWidth);
-      if (w && w !== last) { last = w; if (img.complete && img.naturalWidth) run(); }
+      if (w && w !== lastWidth && img.complete && img.naturalWidth) build();
     }).observe(img);
   });
 })();

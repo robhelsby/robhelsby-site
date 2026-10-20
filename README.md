@@ -92,7 +92,7 @@ ffmpeg -i input.mp4 -c:v copy -an -movflags +faststart client-NN.mp4
 ### Portrait and testimonial photo
 - **Portrait:** `assets/images/about/portrait.webp`, 600×600.
 - **Testimonial:** `assets/images/testimonials/<name>.webp`, 240×240.
-- **Preparing the files:** export them clean, in colour or black and white. The two-colour dither is added in code (`--dither-ink`, `--dither-paper` and `--dither-gamma` in `styles.css` set the colours and brightness).
+- **Preparing the files:** export them clean, in colour or black and white. The two-colour dither is added in code (`--dither-ink`, `--dither-paper`, `--dither-gamma` and `--dither-static` in `styles.css` set the colours, brightness and how much the static moves).
 
 ### Services, prices and FAQs
 - **Services:** the copy is in the `#services` section. Prices also appear in the FAQ answer "What is your pricing?", so update both.
@@ -128,7 +128,7 @@ Please keep these habits; they're why the page is fast.
 ## Accessibility
 
 - **Text alternatives:** every case study image needs meaningful `alt` text. Decorative images (hero slides, headshot frames) use `alt=""` on purpose.
-- **Reduced motion:** all motion respects the reduced-motion setting. The slideshow, ticker, zoom and marker loops either stop or stay still.
+- **Reduced motion:** all motion respects the reduced-motion setting. The slideshow, ticker, zoom, photo static and marker loops either stop or stay still.
 - **Pause control:** the button at the bottom right of the hero pauses the slideshow and ticker.
 
 ---

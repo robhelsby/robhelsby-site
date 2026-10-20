@@ -939,11 +939,13 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
    Wrap an image in <span class="dither"> and script.js redraws it as a
    two-colour dither: --dither-ink dots on --dither-paper. Each dot is one
    CSS pixel. --dither-gamma brightens (below 1) or darkens (above 1) the
-   photo before it's dithered. Without JavaScript the plain image shows. */
+   photo before it's dithered. --dither-static sets how much the dots crawl
+   (0 holds still). Without JavaScript the plain image shows. */
 .dither {
   --dither-ink: var(--forest);
   --dither-paper: var(--paper);
-  --dither-gamma: 0.75;
+  --dither-gamma: 1.05;
+  --dither-static: 0.35;
   position: relative;
   display: block;
   overflow: hidden;
