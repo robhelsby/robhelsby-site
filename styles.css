@@ -922,6 +922,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
 
 .about__lede {
   margin: 0;
+  font-weight: 500;
   max-width: 30em;
   font-size: clamp(1.125rem, 0.95rem + 0.5vw, 1.3125rem);
   line-height: 1.45;
