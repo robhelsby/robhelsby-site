@@ -92,7 +92,7 @@ ffmpeg -i input.mp4 -c:v copy -an -movflags +faststart client-NN.mp4
 ### Portrait and testimonial photo
 - **Portrait:** `assets/images/about/portrait.webp`, 600×600.
 - **Testimonial:** `assets/images/testimonials/<name>.webp`, 240×240.
-- **Preparing the files:** export them clean, in colour or black and white. The two-colour dither is added in code (`--dither-ink`, `--dither-paper`, `--dither-gamma` and `--dither-static` in `styles.css` set the colours, brightness and how much the static moves).
+- **Preparing the files:** export them clean, in colour or black and white. The greyscale and live dither texture are added in code (the `--dither-*` settings in `styles.css` control the tones, texture strength, brightness and how much the static moves).
 
 ### Services, prices and FAQs
 - **Services:** the copy is in the `#services` section. Prices also appear in the FAQ answer "What is your pricing?", so update both.

@@ -937,15 +937,18 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
 
 /* ---------- Dithered photos ----------
    Wrap an image in <span class="dither"> and script.js redraws it as a
-   two-colour dither: --dither-ink dots on --dither-paper. Each dot is one
-   CSS pixel. --dither-gamma brightens (below 1) or darkens (above 1) the
-   photo before it's dithered. --dither-static sets how much the dots crawl
-   (0 holds still). Without JavaScript the plain image shows. */
+   greyscale photo with a live dither texture through it, like TV static.
+   - --dither-ink / --dither-paper: the darkest and lightest tones
+   - --dither-mix: how strong the dot texture is (0 = plain photo, 1 = pure dots)
+   - --dither-gamma: brightens (below 1) or darkens (above 1) the photo
+   - --dither-static: how much the dots crawl (0 holds still)
+   Each dot is one CSS pixel. Without JavaScript the plain image shows. */
 .dither {
-  --dither-ink: var(--forest);
-  --dither-paper: var(--paper);
-  --dither-gamma: 1.05;
-  --dither-static: 0.35;
+  --dither-ink: #161817;
+  --dither-paper: #d6d6d4;
+  --dither-mix: 0.3;
+  --dither-gamma: 1;
+  --dither-static: 1;
   position: relative;
   display: block;
   overflow: hidden;
@@ -971,6 +974,7 @@ video.gallery__media { width: 100%; aspect-ratio: 16 / 9; }
   -webkit-tap-highlight-color: transparent;
 }
 
+.portrait .dither { border-radius: 0.5rem; }
 .portrait__photo {
   width: 100%;
   height: auto;

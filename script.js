@@ -1065,8 +1065,9 @@
 
 
 /* ---------- Dithered photos ----------
-   Redraws each <span class="dither"> image as a two-colour Floyd-Steinberg
-   dither at one dot per CSS pixel, matching the image's object-fit crop.
+   Redraws each <span class="dither"> image in greyscale with an even
+   Floyd-Steinberg dot texture blended through it (--dither-mix), at one dot
+   per CSS pixel, matching the image's object-fit crop.
    It "lives" like TV static: a handful of dither frames, each with a little
    random noise, are cut between about ten times a second while the photo is
    on screen. Reduced motion shows a single still frame.
@@ -1117,9 +1118,11 @@
   }
 
   // One serpentine Floyd-Steinberg frame, with random noise added for static
-  function dither(base, w, h, noise, ink, paper, out) {
+  function dither(base, w, h, noise, mix, ink, paper, out) {
     const lum = new Float32Array(base.length);
-    for (let i = 0; i < lum.length; i++) lum[i] = base[i] + (Math.random() - 0.5) * noise;
+    // The texture is a dither of flat mid-grey plus noise: an even maze of dots
+    // across the whole photo (like a noise layer in a design tool), not tied to its tones
+    for (let i = 0; i < lum.length; i++) lum[i] = 0.5 + (Math.random() - 0.5) * noise;
     for (let y = 0; y < h; y++) {
       const ltr = y % 2 === 0;
       const d = ltr ? 1 : -1;
@@ -1137,10 +1140,14 @@
         }
       }
     }
+    // Blend the dots with the photo itself, then map dark→light onto ink→paper
     const px = out.data;
     for (let i = 0; i < lum.length; i++) {
-      const c = lum[i] ? paper : ink;
-      px[i * 4] = c[0]; px[i * 4 + 1] = c[1]; px[i * 4 + 2] = c[2]; px[i * 4 + 3] = 255;
+      const t = base[i] * (1 - mix) + lum[i] * mix;
+      px[i * 4] = ink[0] + (paper[0] - ink[0]) * t;
+      px[i * 4 + 1] = ink[1] + (paper[1] - ink[1]) * t;
+      px[i * 4 + 2] = ink[2] + (paper[2] - ink[2]) * t;
+      px[i * 4 + 3] = 255;
     }
     return out;
   }
@@ -1169,12 +1176,14 @@
       const paper = rgb(css.getPropertyValue("--dither-paper").trim());
       const gamma = parseFloat(css.getPropertyValue("--dither-gamma")) || 1;
       const noise = parseFloat(css.getPropertyValue("--dither-static")) || 0;
+      const mixVal = parseFloat(css.getPropertyValue("--dither-mix"));
+      const mix = isNaN(mixVal) ? 1 : mixVal;
       const base = tones(img, w, h, gamma);
       canvas.width = w; canvas.height = h;
       const count = still.matches || !noise ? 1 : FRAME_COUNT;
       stack = [];
       for (let k = 0; k < count; k++) {
-        stack.push(dither(base, w, h, count > 1 ? noise : 0, ink, paper, ctx.createImageData(w, h)));
+        stack.push(dither(base, w, h, count > 1 ? noise : 0, mix, ink, paper, ctx.createImageData(w, h)));
       }
       shown = 0;
       ctx.putImageData(stack[0], 0, 0);
