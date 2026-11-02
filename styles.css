@@ -427,14 +427,9 @@ a { color: inherit; }
   font-size: var(--text-small);
   line-height: 1.45;
 }
-/* Space for the tag line, so names line up across the three */
-.svc-overview__item:not(:first-child) .svc-overview__link { padding-top: calc(1.5rem + 0.8125rem * 1.4 + 0.5rem); }
 
 @media (min-width: 48em) {
   .svc-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 47.99em) {
-  .svc-overview__item:not(:first-child) .svc-overview__link { padding-top: 1.5rem; }
 }
 
 .service { position: relative; }
