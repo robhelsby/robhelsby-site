@@ -361,7 +361,7 @@ a { color: inherit; }
 .svc-overview {
   display: grid;
   gap: 0 2rem;
-  margin: 0 0 clamp(2.5rem, 1.5rem + 3vw, 4rem);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -383,7 +383,7 @@ a { color: inherit; }
   flex-direction: column;
   gap: 0.5rem;
   height: 100%;
-  padding: 1.5rem 0 1.75rem;
+  padding: 1.5rem 0;   /* even space above and below, up to the next dashed line */
   color: inherit;
   text-decoration: none;
 }
