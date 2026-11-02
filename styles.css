@@ -465,6 +465,13 @@ a { color: inherit; }
   line-height: 1.6;
 }
 
+.services__note {
+  margin: clamp(3rem, 2rem + 3vw, 5rem) 0 0;
+  max-width: var(--measure);
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
 .service__label {
   margin: 2.5rem 0 1.1rem;
   font-weight: 500;

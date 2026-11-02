@@ -95,7 +95,7 @@ ffmpeg -i input.mp4 -c:v copy -an -movflags +faststart client-NN.mp4
 - **Preparing the files:** export them clean, in colour or black and white. The greyscale and live dither texture are added in code (the `--dither-*` settings in `styles.css` control the tones, texture strength, brightness and how much the static moves).
 
 ### Services, prices and FAQs
-- **Services:** the copy is in the `#services` section. Prices also appear in the FAQ answer "What is your pricing?", so update both.
+- **Services:** the copy is in the `#services` section. Service names and lengths also appear in the meta description and in three FAQ answers ("We're not sure which service we need", "What is your pricing?", which describes how each is charged without figures, and "Do you offer ongoing support or retainers?"), so update those too.
 - **FAQs:** each is a `<details class="faq__item">`. Copy one to add a question; the numbers are typed by hand, so renumber them after adding or removing one.
 
 ### Contact
