@@ -439,6 +439,14 @@ a { color: inherit; }
   padding-top: clamp(3rem, 2rem + 3vw, 5rem);
 }
 
+/* The problem each service solves, quoted above its name */
+.service__problem {
+  margin: 0 0 0.75rem;
+  max-width: var(--measure);
+  font-size: var(--text-small);
+  line-height: 1.45;
+}
+
 .service__title {
   margin: 0;
   scroll-margin-top: 5rem;
