@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link rel="stylesheet" href="/styles.css?v=2026-11-17">
+  <link rel="stylesheet" href="/styles.css?v=2026-11-17b">
   <!-- Bricolage Grotesque, trimmed to the single "&" it's used for -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@96,400&amp;text=%26&amp;display=swap" media="print" onload="this.media='all'">
 
@@ -42,7 +42,7 @@
   <script>
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("intro");
   </script>
-  <script src="/script.js?v=2026-11-17" defer></script>
+  <script src="/script.js?v=2026-11-17b" defer></script>
 
   <script type="application/ld+json">
   {
@@ -101,10 +101,6 @@
           <img class="hero__slide" data-src="/assets/images/hero/rh_hero_03.webp" data-srcset="/assets/images/hero/rh_hero_03-1200.webp 1200w, /assets/images/hero/rh_hero_03.webp 2400w" sizes="100vw" style="--focus: 62% 40%" alt="" width="2400" height="1028" decoding="async">
         </div>
 
-        <button class="hero__pause" type="button" aria-label="Pause hero animation">
-          <svg class="hero__pause-icon hero__pause-icon--pause" viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="2" width="2.25" height="8"/><rect x="7.25" y="2" width="2.25" height="8"/></svg>
-          <svg class="hero__pause-icon hero__pause-icon--play" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 2v8l6.5-4z"/></svg>
-        </button>
 
         <div class="hero__heading">
           <p class="hero__eyebrow">Booking Q1 2027 engagements</p>
@@ -120,6 +116,10 @@
         <div class="hero__actions">
           <!-- Opens Calendly as a pop-up; without JavaScript it opens Calendly in a new tab -->
           <a class="btn" href="https://calendly.com/rob-robhelsby/30min" target="_blank" rel="noopener" data-calendly="https://calendly.com/rob-robhelsby/30min?background_color=0d0f0e&amp;text_color=f3e4e1&amp;primary_color=4cdb84">Book a 30-minute call</a>
+          <button class="hero__pause" type="button" aria-label="Pause hero animation">
+            <svg class="hero__pause-icon hero__pause-icon--pause" viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="2" width="2.25" height="8"/><rect x="7.25" y="2" width="2.25" height="8"/></svg>
+            <svg class="hero__pause-icon hero__pause-icon--play" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 2v8l6.5-4z"/></svg>
+          </button>
         </div>
 
         <div class="ticker" data-ticker>
@@ -154,56 +154,8 @@
     <!-- ===== SERVICES ===== -->
     <section class="section services" id="services" data-theme="light" aria-labelledby="services-title">
       <div class="section__inner">
-        <h2 class="section__title" id="services-title">Sound familiar?</h2>
+        <h2 class="section__title" id="services-title">What to hire me for</h2>
         <p class="section__intro">For organisations with complex websites and a lot riding on them.</p>
-
-        <!-- At a glance: each problem jumps to the service that solves it -->
-        <ul class="svc-overview" aria-label="Problems I solve, at a glance">
-          <li class="svc-overview__item">
-            <a class="svc-overview__link" href="#svc-audit">
-              <span class="svc-overview__name">&ldquo;We&rsquo;re about to redesign or replatform, and I&rsquo;m not sure it&rsquo;s the right call.&rdquo;</span>
-              <span class="svc-overview__price">Decision Audit</span>
-            </a>
-          </li>
-          <li class="svc-overview__item">
-            <a class="svc-overview__link" href="#svc-fractional">
-              <span class="svc-overview__name">&ldquo;Our digital programme has no senior design owner.&rdquo;</span>
-              <span class="svc-overview__price">Fractional Design Director</span>
-            </a>
-          </li>
-          <li class="svc-overview__item">
-            <a class="svc-overview__link" href="#svc-interim">
-              <span class="svc-overview__name">&ldquo;Our head of design has left <span class="nowrap">mid-programme</span>.&rdquo;</span>
-              <span class="svc-overview__price">Interim Design Leadership</span>
-            </a>
-          </li>
-        </ul>
-
-        <article class="service" aria-labelledby="svc-audit">
-          <p class="service__problem">&ldquo;We&rsquo;re about to redesign or replatform, and I&rsquo;m not sure it&rsquo;s the right call.&rdquo;</p>
-          <h3 class="service__title" id="svc-audit">Decision Audit</h3>
-          <p class="service__lede">Before you redesign, replatform or consolidate, test the call.</p>
-
-          <h4 class="service__label">It answers</h4>
-          <ul class="checklist">
-            <li>Do we need a rebuild, or would optimisation get us there?</li>
-            <li>Are the platform, scope and partner right for us?</li>
-            <li>What will it really cost, and what&rsquo;s the risk if we get it wrong?</li>
-          </ul>
-
-          <h4 class="service__label">You get</h4>
-          <ul class="checklist">
-            <li>A review of your current estate and plans</li>
-            <li>Stakeholder interviews</li>
-            <li>A one-page decision brief with a recommended option, cost and risk</li>
-            <li>A 90-day plan</li>
-          </ul>
-
-          <div class="service__foot">
-            <p class="service__term">2&ndash;10 days &middot; fixed fee from &pound;6,000</p>
-            <a class="link-cta" href="#contact">Start a conversation</a>
-          </div>
-        </article>
 
         <article class="service" aria-labelledby="svc-fractional">
           <p class="service__problem">&ldquo;Our digital programme has no senior design owner.&rdquo;</p>
@@ -241,6 +193,32 @@
 
           <div class="service__foot">
             <p class="service__term">3&ndash;6 months &middot; from &pound;600 a day</p>
+            <a class="link-cta" href="#contact">Start a conversation</a>
+          </div>
+        </article>
+
+        <article class="service" aria-labelledby="svc-audit">
+          <p class="service__problem">&ldquo;We&rsquo;re about to redesign or replatform, and I&rsquo;m not sure it&rsquo;s the right call.&rdquo;</p>
+          <h3 class="service__title" id="svc-audit">Decision Audit</h3>
+          <p class="service__lede">Fixing your website is a major investment, and getting it wrong is the kind of call people lose jobs over. I help you understand the problem, test the options and establish what the project really needs.</p>
+
+          <h4 class="service__label">It answers</h4>
+          <ul class="checklist">
+            <li>Do we need a rebuild, or would optimisation get us there?</li>
+            <li>Are the platform, scope and partner right for us?</li>
+            <li>What will it really cost, and what&rsquo;s the risk if we get it wrong?</li>
+          </ul>
+
+          <h4 class="service__label">You get</h4>
+          <ul class="checklist">
+            <li>A review of your current estate and plans</li>
+            <li>Stakeholder interviews</li>
+            <li>A one-page decision brief with a recommended option, cost and risk</li>
+            <li>A 90-day plan</li>
+          </ul>
+
+          <div class="service__foot">
+            <p class="service__term">2&ndash;10 days &middot; fixed fee from &pound;6,000</p>
             <a class="link-cta" href="#contact">Start a conversation</a>
           </div>
         </article>
@@ -449,27 +427,17 @@
             <details class="faq__item">
               <summary class="faq__q">
                 <span class="faq__num" aria-hidden="true">01</span>
-                <span class="faq__text"><span class="faq__label">Do you work with startups?</span></span>
-                <span class="faq__icon" aria-hidden="true"></span>
-              </summary>
-              <div class="faq__a">
-                <p>Yes, when the timing&rsquo;s right. I love helping startups reach their goals, and the right moment to bring me in is when you&rsquo;re approaching, or have just closed, Series A funding.</p>
-              </div>
-            </details>
-            <details class="faq__item">
-              <summary class="faq__q">
-                <span class="faq__num" aria-hidden="true">02</span>
                 <span class="faq__text"><span class="faq__label">We&rsquo;re not sure which service we need.</span></span>
                 <span class="faq__icon" aria-hidden="true"></span>
               </summary>
               <div class="faq__a">
-                <p>As a rule of thumb: if you&rsquo;re about to redesign, replatform or consolidate, start with a Decision Audit. If your digital programme has no senior design owner, it&rsquo;s a Fractional Design Director. If your head of design has left, it&rsquo;s Interim Design Leadership.</p>
+                <p>As a rule of thumb: if your digital programme has no senior design owner, it&rsquo;s a Fractional Design Director. If your head of design has left, it&rsquo;s Interim Design Leadership. If you&rsquo;re about to redesign, replatform or consolidate, start with a Decision Audit.</p>
                 <p>Still unsure? <a href="#contact">Get in touch</a> and I&rsquo;ll tell you honestly what fits.</p>
               </div>
             </details>
             <details class="faq__item">
               <summary class="faq__q">
-                <span class="faq__num" aria-hidden="true">03</span>
+                <span class="faq__num" aria-hidden="true">02</span>
                 <span class="faq__text"><span class="faq__label">Won&rsquo;t a Decision Audit just give us another strategy deck?</span></span>
                 <span class="faq__icon" aria-hidden="true"></span>
               </summary>
@@ -479,23 +447,23 @@
             </details>
             <details class="faq__item">
               <summary class="faq__q">
-                <span class="faq__num" aria-hidden="true">04</span>
+                <span class="faq__num" aria-hidden="true">03</span>
                 <span class="faq__text"><span class="faq__label">What is your pricing?</span></span>
                 <span class="faq__icon" aria-hidden="true"></span>
               </summary>
               <div class="faq__a">
                 <p>Hidden pricing is one of the most frustrating parts of finding a partner, so here&rsquo;s mine. You&rsquo;ll always know the cost before we start.</p>
                 <ul class="faq__prices">
-                  <li><span class="faq__price-name">Decision Audit</span> <span class="faq__price">From &pound;6,000.</span> A fixed fee for an agreed scope, usually 2&ndash;10 days.</li>
                   <li><span class="faq__price-name">Fractional Design Director</span> <span class="faq__price">From &pound;3,500 a month for one day a week.</span> Up to two days a week, with a three-month minimum.</li>
                   <li><span class="faq__price-name">Interim Design Leadership</span> <span class="faq__price">From &pound;600 a day.</span> For engagements of 3&ndash;6 months.</li>
+                  <li><span class="faq__price-name">Decision Audit</span> <span class="faq__price">From &pound;6,000.</span> A fixed fee for an agreed scope, usually 2&ndash;10 days.</li>
                 </ul>
                 <p>All prices exclude VAT. Every engagement is scoped to your situation, so if you&rsquo;re not sure what fits, <a href="#contact">get in touch</a> and I&rsquo;ll give you my honest advice. Sometimes the right answer is a smaller piece of work first.</p>
               </div>
             </details>
             <details class="faq__item">
               <summary class="faq__q">
-                <span class="faq__num" aria-hidden="true">05</span>
+                <span class="faq__num" aria-hidden="true">04</span>
                 <span class="faq__text"><span class="faq__label">Do you offer ongoing support or retainers?</span></span>
                 <span class="faq__icon" aria-hidden="true"></span>
               </summary>
@@ -505,12 +473,23 @@
             </details>
             <details class="faq__item">
               <summary class="faq__q">
-                <span class="faq__num" aria-hidden="true">06</span>
+                <span class="faq__num" aria-hidden="true">05</span>
                 <span class="faq__text"><span class="faq__label">We&rsquo;re not based in the UK. Can we still work together?</span></span>
                 <span class="faq__icon" aria-hidden="true"></span>
               </summary>
               <div class="faq__a">
                 <p>Absolutely. I&rsquo;m based in the UK, but most of my work is delivered remotely. As long as you&rsquo;re happy to work in English and collaborate online, we&rsquo;re good to go.</p>
+              </div>
+            </details>
+            <details class="faq__item">
+              <summary class="faq__q">
+                <span class="faq__num" aria-hidden="true">06</span>
+                <span class="faq__text"><span class="faq__label">Do you work with startups?</span></span>
+                <span class="faq__icon" aria-hidden="true"></span>
+              </summary>
+              <div class="faq__a">
+                <p>Yes. The decisions you make early on set the direction for years, and they&rsquo;re far cheaper to get right now than to fix later. I can help you make those calls, define the design and experience your product and website need, and put a design system in place that scales as you grow.</p>
+                <p>I can also act as your Design Director until you&rsquo;re ready for a full-time hire, then help you find the right one. The best time to bring me in is usually around Series A, when you&rsquo;re ready to invest properly in design.</p>
               </div>
             </details>
             <details class="faq__item">
